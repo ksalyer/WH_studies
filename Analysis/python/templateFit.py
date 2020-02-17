@@ -1,5 +1,12 @@
+'''
+Some spaghetti code for W+jets estimation. Will at some point live in a different repository, too.
+
+'''
+
+
 import ROOT
 import glob
+import math
 
 from ROOT import RooFit as rf
 from RootTools.core.standard import *
@@ -35,7 +42,23 @@ if year == 2016:
 
     WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
     WJets.setSelectionString("stitch")
-    
+
+    # DY for 2l - take all MC at once    
+    DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_M50_s16v3*.root')\
+                + glob.glob(mcDir+'slim*WW*.root') \
+                + glob.glob(mcDir+'slim*WZ*.root') \
+                + glob.glob(mcDir+'slim*ZZ*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_top_s16v3*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_tbar_s16v3*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_*met150*.root') \
+                + glob.glob(mcDir+'slim*TTJets_2lep_s16v3*.root')\
+                + glob.glob(mcDir+'slim*TTJets_2lep_*met150*.root')\
+                + glob.glob(mcDir+'slim*_ST_*.root') \
+                + glob.glob(mcDir+'slim*TTW*.root') \
+                + glob.glob(mcDir+'slim*TTZ*.root')
+    DYJets = Sample.fromFiles("DYJets", DYJetsDirs, "t")
+    DYJets.setSelectionString("stitch")
+
     # tt/t
     TTJetsDirs =  glob.glob(mcDir+'slim*TTJets_1lep_top_s16v3*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_tbar_s16v3*.root') \
@@ -77,6 +100,22 @@ elif year == 2017:
 
     WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
     WJets.setSelectionString("stitch")
+
+    # DY for 2l - take all MC at once    
+    DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_M50_f17v2*.root')\
+                + glob.glob(mcDir+'slim*WW*.root') \
+                + glob.glob(mcDir+'slim*WZ*.root') \
+                + glob.glob(mcDir+'slim*ZZ*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_top_f17v2*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_tbar_f17v2*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_*met150*.root') \
+                + glob.glob(mcDir+'slim*TTJets_2lep_f17v2*.root')\
+                + glob.glob(mcDir+'slim*TTJets_2lep_*met150*.root')\
+                + glob.glob(mcDir+'slim*_ST_*.root') \
+                + glob.glob(mcDir+'slim*TTW*.root') \
+                + glob.glob(mcDir+'slim*TTZ*.root')
+    DYJets = Sample.fromFiles("DYJets", DYJetsDirs, "t")
+    DYJets.setSelectionString("stitch")
     
     # tt/t
     TTJetsDirs =  glob.glob(mcDir+'slim*TTJets_1lep_top_f17v2*.root') \
@@ -117,6 +156,22 @@ elif year == 2018:
     # w+jets
     WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
     WJets.setSelectionString("stitch")
+
+    # DY for 2l - take all MC at once    
+    DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_madgraph_*.root')\
+                + glob.glob(mcDir+'slim*WW*.root') \
+                + glob.glob(mcDir+'slim*WZ*.root') \
+                + glob.glob(mcDir+'slim*ZZ*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_top_a18v1*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_tbar_a18v1*.root') \
+                + glob.glob(mcDir+'slim*TTJets_1lep_*met150*.root') \
+                + glob.glob(mcDir+'slim*TTJets_2lep_a18v1*.root')\
+                + glob.glob(mcDir+'slim*TTJets_2lep_*met150*.root')\
+                + glob.glob(mcDir+'slim*_ST_*.root') \
+                + glob.glob(mcDir+'slim*TTW*.root') \
+                + glob.glob(mcDir+'slim*TTZ*.root')
+    DYJets = Sample.fromFiles("DYJets", DYJetsDirs, "t")
+    DYJets.setSelectionString("stitch")
     
     # tt/t
     TTJetsDirs =  glob.glob(mcDir+'slim*TTJets_1lep_top_a18v1*.root') \
@@ -147,7 +202,8 @@ elif year == 2018:
 WHSelection     = "(Sum$(abs(lep1_pdgid)==11&&(leps_pt[0]>30&&(lep1_relIso*leps_pt[0])<5)||abs(lep1_pdgid)==13&&(leps_pt[0]>25&&(lep1_relIso*leps_pt[0])<5&&abs(leps_eta[0])<2.1))+"
 WHSelection    += "Sum$(abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1)))==1"
 selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&pfmet>125&&mt_met_lep>150&&mct>200&&mbb>90&&mbb<150"
-selectionString_SB = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&pfmet>125&&mt_met_lep>150&&mct>200&&((mbb<90&&mbb>30)||(mbb>150))"
+#selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==3&&pfmet>125&&mt_met_lep>150&&mct>200&&mbb>90&&mbb<150 && Sum$(ak4pfjets_pt>100)<=3"
+#selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&pfmet>125&&mt_met_lep>150&&mct>200&&((mbb<90&&mbb>30)||(mbb>150))"
 
 WHLepton1 = "(abs(lep1_pdgid)==11&&(leps_pt[0]>30&&(lep1_relIso*leps_pt[0])<5)||abs(lep1_pdgid)==13&&(leps_pt[0]>25&&(lep1_relIso*leps_pt[0])<5&&abs(leps_eta[0])<2.1))"
 WHLepton2 = "(abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1))"
@@ -156,12 +212,19 @@ pdgid1 = "MaxIf$(lep1_pdgid/abs(lep1_pdgid), abs(lep1_pdgid)==11&&(leps_pt[0]>30
 pdgid2 = "MaxIf$(lep2_pdgid/abs(lep2_pdgid), abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1))"
 pdgid = "((%s)+(%s))"%(pdgid1,pdgid2)
 
-selectionString = selectionString_SB
+# 2l selection for systematics
+dilepSelection     = "(Sum$(abs(lep1_pdgid)==11&&(leps_pt[0]>30&&(lep1_relIso*leps_pt[0])<5)||abs(lep1_pdgid)==13&&(leps_pt[0]>25&&(lep1_relIso*leps_pt[0])<5&&abs(leps_eta[0])<2.1))+"
+dilepSelection    += "Sum$(abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1)))==2"
 
+#raise NotImplementedError
 
 print "W+jets templates"
 WJets2D_pos = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 WJets2D_neg = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+
+WJets2D_Higgs = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+TTJets2D_Higgs = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+
 
 print "tt+jets templates"
 TTJets2D = TTJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
@@ -173,6 +236,8 @@ Data2D_neg = Data.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000]
 metBins = [(125,200), (200,300), (300,400), (400,-1)]
 
 W_pred = {}
+
+yearWeight = "((year==2016)*35.9+((year==2017)*41.6)+((year==2018)*59.7))" # only need weight*w_pu in addition
 
 for metBin in range(len(metBins)):
     print "Working on MET bin:",  metBins[metBin]
@@ -352,38 +417,113 @@ for metBin in range(len(metBins)):
     #print "Max:", results[83]
 
     R_W = (af(WJets2D_pos.GetBinContent(metBin+1, 3), WJets2D_pos.GetBinError(metBin+1, 3))+af(WJets2D_neg.GetBinContent(metBin+1, 3), WJets2D_neg.GetBinError(metBin+1, 3)))/(af(WJets2D_pos.GetBinContent(metBin+1, 1), WJets2D_pos.GetBinError(metBin+1, 1))+af(WJets2D_neg.GetBinContent(metBin+1, 1), WJets2D_neg.GetBinError(metBin+1, 1)))
-    W_pred[metBins[metBin]] = {'0b':W_0b, 'R_W':R_W, '0b_all':results}
-   
+    y_inclH = af(WJets2D_Higgs.GetBinContent(metBin+1, 2), WJets2D_Higgs.GetBinError(metBin+1, 2)) + af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))
+    R_1H = af(WJets2D_Higgs.GetBinContent(metBin+1, 2), WJets2D_Higgs.GetBinError(metBin+1, 2))/y_inclH
+    R_0H = af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))/y_inclH
+    W_pred[metBins[metBin]] = {'0b':W_0b, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H}
+    
+    # need to set the uncertainty for 0 to 1.8410*weight -> which weight? inclusive Fall17 W+jets sample has weight of >20 for 41.5/fb. Need to check!
+    
     print "R_W:", R_W
 
-WJetsHist_pred = ROOT.TH1F('WJetsHist_pred', '', 4,0,4)
-TTJetsHist_pred = ROOT.TH1F('TTJetsHist_pred', '', 4,0,4)
-DataHist_obs = ROOT.TH1F('Data_obs', '', 4,0,4)
+WJetsHist_pred = ROOT.TH1F('WJetsHist_pred', '', 8,0,8)
+TTJetsHist_pred = ROOT.TH1F('TTJetsHist_pred', '', 8,0,8)
+DataHist_obs = ROOT.TH1F('Data_obs', '', 8,0,8)
 
 WJetsHist_pred.style = styles.fillStyle(ROOT.kGreen+1)
 TTJetsHist_pred.style = styles.fillStyle(ROOT.kBlue+1)
 DataHist_obs.style = styles.errorStyle(ROOT.kBlack)
 
-WJetsHist_pred.legendText = "W+jets"
-TTJetsHist_pred.legendText = "tt+jets"
+WJetsHist_pred.legendText = "W+jets (predicted)"
+TTJetsHist_pred.legendText = "tt+jets (MC)"
 DataHist_obs.legendText = "Data %s"%year
 
 for i,metBin in enumerate(metBins):
-    TTJetsHist_pred.SetBinContent(i+1, TTJets2D.GetBinContent(i+1, 3))
-    TTJetsHist_pred.SetBinError(i+1, TTJets2D.GetBinError(i+1, 3))
-    WJetsHist_pred.SetBinContent(i+1, W_pred[metBin]['0b']*W_pred[metBin]['R_W'].central)
-    WJetsHist_pred.SetBinError(i+1, W_pred[metBin]['0b']*W_pred[metBin]['R_W'].up)
+    TTJetsHist_pred.SetBinContent(2*i+1, TTJets2D_Higgs.GetBinContent(i+1, 1))
+    TTJetsHist_pred.SetBinError(2*i+1, TTJets2D_Higgs.GetBinError(i+1, 1))
+    TTJetsHist_pred.SetBinContent(2*i+2, TTJets2D_Higgs.GetBinContent(i+1, 2))
+    TTJetsHist_pred.SetBinError(2*i+2, TTJets2D_Higgs.GetBinError(i+1, 2))
+    WJetsHist_pred.SetBinContent(2*i+1, W_pred[metBin]['2b,0H'].central)
+    WJetsHist_pred.SetBinError(2*i+1, W_pred[metBin]['2b,0H'].up)
+    WJetsHist_pred.SetBinContent(2*i+2, W_pred[metBin]['2b,1H'].central)
+    WJetsHist_pred.SetBinError(2*i+2, W_pred[metBin]['2b,1H'].up)
     DataHist_obs.SetBinContent(i+1, Data2D_pos.GetBinContent(i+1,3)+Data2D_neg.GetBinContent(i+1,3))
+
+boxes = []
+ratio_boxes = []
+for ib in range(1,9):
+    val = TTJetsHist_pred.GetBinContent(ib) + WJetsHist_pred.GetBinContent(ib)
+    if val<0: continue
+    sys = math.sqrt(TTJetsHist_pred.GetBinError(ib)**2 + WJetsHist_pred.GetBinError(ib)**2)
+    if val > 0:
+        sys_rel = sys/val
+    else:
+        sys_rel = 1.
+    
+    # uncertainty box in main histogram
+    box = ROOT.TBox( WJetsHist_pred.GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), WJetsHist_pred.GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
+    box.SetLineColor(ROOT.kGray+1)
+    box.SetFillStyle(3244)
+    box.SetFillColor(ROOT.kGray+1)
+    
+    ## uncertainty box in ratio histogram
+    #r_box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
+    #r_box.SetLineColor(ROOT.kGray+1)
+    #r_box.SetFillStyle(3244)
+    #r_box.SetFillColor(ROOT.kGray+1)
+
+    boxes.append( box )
+    #hists[2016]['total_background'].SetBinError(ib, 0)
+    #ratio_boxes.append( r_box )
 
 plot_path = './'
 
 plotting.draw(
     Plot.fromHisto(name = 'Closure_%s'%year, histos = [[ WJetsHist_pred,TTJetsHist_pred ], [ DataHist_obs] ], texX = "p_{T}^{miss} bins", texY = "Events"),
     plot_directory = plot_path,
-#    yRange = (0.003,3),
+    yRange = (0.0,6.5),
     ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
-    logX = False, logY = True, sorting = False,
+    logX = False, logY = False, sorting = False,
+    drawObjects = boxes,
 )
+
+## systematics
+#selectionString_2l  = dilepSelection+"&&pass&&nvetoleps==2&&PassTrackVeto&&PassTauVeto&&ngoodjets>=2&&mct>200&&mbb>90&&mbb<150&&(lep1_pdgid*lep2_pdgid<0)"
+selectionString_2l  = dilepSelection+"&&pass&&nvetoleps==2&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&mct>200&&mbb>90&&mbb<150&&(lep1_pdgid*lep2_pdgid<0)"
+invariantMass       = "sqrt(2*leps_pt[0]*leps_pt[1]*(cosh(leps_eta[0]-leps_eta[1])-cos(leps_phi[0]-leps_phi[1])))"
+selectionString_2l += "&&abs(%s-91.2)<5"%invariantMass
+
+Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1)")
+
+## first double ratio for mbb extrapolation - only mbb selection to be determined
+print "Working on b-tagging double ration"
+mc_2b = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==2",'weight * w_pu *'+yearWeight)
+mc_0b = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==0",'weight * w_pu *'+yearWeight)
+data_2b = Data.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==2",'(1)')
+data_0b = Data.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==0",'(1)')
+
+mc_2b = af(mc_2b['val'], mc_2b['sigma'])
+mc_0b = af(mc_0b['val'], mc_0b['sigma'])
+data_2b = af(data_2b['val'], data_2b['sigma'])
+data_0b = af(data_0b['val'], data_0b['sigma'])
+
+print "2l b-tag double ratio:", (data_2b/data_0b)/(mc_2b/mc_0b)
+
+## second double ratio for higgs tagging - under devolpment
+mc_1h = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==1",'weight * w_pu *'+lumi)
+mc_0h = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==0",'weight * w_pu *'+lumi)
+
+data_1h = Data.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==1",'(1)')
+data_0h = Data.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==0",'(1)')
+
+mc_1h = af(mc_1h['val'], mc_1h['sigma'])
+mc_0h = af(mc_0h['val'], mc_0h['sigma'])
+data_1h = af(data_1h['val'], data_1h['sigma'])
+data_0h = af(data_0h['val'], data_0h['sigma'])
+
+print "MC 1h/incl:", (mc_1h/mc_2b)
+print "MC 0h/incl:", (mc_0h/mc_2b)
+print "2l Higgs-tag double ratio:", (data_1h/data_0h)/(mc_1h/mc_0h)
 
 ## Closure test
 

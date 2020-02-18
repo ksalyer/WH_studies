@@ -25,7 +25,7 @@ def getRandomHistOfTemplate(hist, color=ROOT.kOrange):
     del h
     return res
 
-year = 2017
+year = 2018
 
 if year == 2016:
     # definitions
@@ -225,6 +225,12 @@ WJets2D_neg = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,100
 WJets2D_Higgs = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 TTJets2D_Higgs = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 
+## fancy reweighting for Higgs tag estimation
+reweighting = "((ak8pfjets_pt[0]>170&&ak8pfjets_pt[0]<250)*0.05 + (ak8pfjets_pt[0]>250&&ak8pfjets_pt[0]<300)*0.15 + (ak8pfjets_pt[0]>300&&ak8pfjets_pt[0]<400)*0.27 + (ak8pfjets_pt[0]>400&&ak8pfjets_pt[0]<500)*0.35 + (ak8pfjets_pt[0]>500&&ak8pfjets_pt[0]<750)*0.40 + (ak8pfjets_pt[0]>750)*0.35)"
+
+WJets2D_Boosted = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+WJets2D_BoostedRew = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi+'*'+reweighting, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+TTJets2D_Boosted = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 
 print "tt+jets templates"
 TTJets2D = TTJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
@@ -420,7 +426,10 @@ for metBin in range(len(metBins)):
     y_inclH = af(WJets2D_Higgs.GetBinContent(metBin+1, 2), WJets2D_Higgs.GetBinError(metBin+1, 2)) + af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))
     R_1H = af(WJets2D_Higgs.GetBinContent(metBin+1, 2), WJets2D_Higgs.GetBinError(metBin+1, 2))/y_inclH
     R_0H = af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))/y_inclH
-    W_pred[metBins[metBin]] = {'0b':W_0b, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H}
+    numerator = af(WJets2D_Boosted.GetBinContent(metBin+1,1)+WJets2D_Boosted.GetBinContent(i,2), 0) # stat uncertainty of W+jets already in R_W
+    R_1H_mistag = af(WJets2D_BoostedRew.GetBinContent(metBin+1,2), WJets2D_BoostedRew.GetBinError(metBin+1,2))/numerator
+    R_0H_mistag = af(1,0) - R_1H_mistag 
+    W_pred[metBins[metBin]] = {'0b':W_0b, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H, '2b,1Hm':W_0b*R_W*R_1H_mistag, '2b,0Hm':W_0b*R_W*R_0H_mistag}
     
     # need to set the uncertainty for 0 to 1.8410*weight -> which weight? inclusive Fall17 W+jets sample has weight of >20 for 41.5/fb. Need to check!
     

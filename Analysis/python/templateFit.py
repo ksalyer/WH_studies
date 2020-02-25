@@ -13,6 +13,9 @@ from RootTools.core.standard import *
 
 from WH_studies.Tools.asym_float import asym_float as af
 
+ROOT.gROOT.LoadMacro('../../../RootTools/plot/scripts/tdrstyle.C')
+ROOT.setTDRStyle()
+
 def getRandomHistOfTemplate(hist, color=ROOT.kOrange):
     h = ROOT.TH1F()
     hist.Copy(h)
@@ -25,7 +28,12 @@ def getRandomHistOfTemplate(hist, color=ROOT.kOrange):
     del h
     return res
 
-year = 2018
+def getIntegralAndError(hist):
+    err = ROOT.Double()
+    val = hist.IntegralAndError(0,1000,err)
+    return af(val,err)
+
+year = 2016
 
 if year == 2016:
     # definitions
@@ -33,15 +41,20 @@ if year == 2016:
     dataDir = '/home/users/dspitzba/wh_babies/babies_v33_4_2019_12_30/'
     lumi = '35.9'
     
+    #FIXME split off WX part because of low stats and negative weights
     # w+jets
     WJetsDirs =   glob.glob(mcDir+'slim_W*JetsToLNu_s16v3*.root') \
                 + glob.glob(mcDir+"slim*W*Jets_NuPt200_s16v*.root") \
-                + glob.glob(mcDir+'slim*WW*.root') \
-                + glob.glob(mcDir+'slim*WZ*.root') \
-                + glob.glob(mcDir+'slim*ZZ*.root') \
 
     WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
     WJets.setSelectionString("stitch")
+
+    # WX
+    WXDirs  = glob.glob(mcDir+'slim*WW*.root') \
+            + glob.glob(mcDir+'slim*WZ*.root') \
+            + glob.glob(mcDir+'slim*ZZ*.root') \
+
+    WX = Sample.fromFiles('WX', WXDirs, "t")
 
     # DY for 2l - take all MC at once    
     DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_M50_s16v3*.root')\
@@ -94,12 +107,16 @@ elif year == 2017:
     # w+jets
     WJetsDirs   = glob.glob(mcDir+"*slim_W*JetsToLNu_f17v2*")\
                 + glob.glob(mcDir+"slim*W*Jets_NuPt200_f17v*.root")\
-                + glob.glob(mcDir+'slim*WW*.root') \
-                + glob.glob(mcDir+'slim*WZ*.root') \
-                + glob.glob(mcDir+'slim*ZZ*.root') \
 
     WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
     WJets.setSelectionString("stitch")
+
+    # WX
+    WXDirs  = glob.glob(mcDir+'slim*WW*.root') \
+            + glob.glob(mcDir+'slim*WZ*.root') \
+            + glob.glob(mcDir+'slim*ZZ*.root') \
+
+    WX = Sample.fromFiles('WX', WXDirs, "t")
 
     # DY for 2l - take all MC at once    
     DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_M50_f17v2*.root')\
@@ -147,15 +164,19 @@ elif year == 2018:
     dataDir = '/home/users/dspitzba/wh_babies/babies_Run2018_v33_4_2019_12_30/'
     lumi = '60.0'
     
-    WJetsDirs   = glob.glob(mcDir+'slim*WW*.root') \
-                + glob.glob(mcDir+'slim*WZ*.root') \
-                + glob.glob(mcDir+'slim*ZZ*.root') \
-                + glob.glob(mcDir+'slim*W*JetsToLNu_a18v1*.root') \
+    WJetsDirs   = glob.glob(mcDir+'slim*W*JetsToLNu_a18v1*.root') \
                 + glob.glob(mcDir+'slim*W*Jets_NuPt200_a18v*.root')
 
     # w+jets
     WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
     WJets.setSelectionString("stitch")
+
+    # WX
+    WXDirs  = glob.glob(mcDir+'slim*WW*.root') \
+            + glob.glob(mcDir+'slim*WZ*.root') \
+            + glob.glob(mcDir+'slim*ZZ*.root') \
+
+    WX = Sample.fromFiles('WX', WXDirs, "t")
 
     # DY for 2l - take all MC at once    
     DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_madgraph_*.root')\
@@ -222,12 +243,16 @@ print "W+jets templates"
 WJets2D_pos = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 WJets2D_neg = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 
+WX2D_pos = WX.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+WX2D_neg = WX.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+
 WJets2D_Higgs = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 TTJets2D_Higgs = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 
 ## fancy reweighting for Higgs tag estimation
 reweighting = "((ak8pfjets_pt[0]>170&&ak8pfjets_pt[0]<250)*0.05 + (ak8pfjets_pt[0]>250&&ak8pfjets_pt[0]<300)*0.15 + (ak8pfjets_pt[0]>300&&ak8pfjets_pt[0]<400)*0.27 + (ak8pfjets_pt[0]>400&&ak8pfjets_pt[0]<500)*0.35 + (ak8pfjets_pt[0]>500&&ak8pfjets_pt[0]<750)*0.40 + (ak8pfjets_pt[0]>750)*0.35)"
 
+## what to do with boosted stuff in WX?? #FIXME
 WJets2D_Boosted = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 WJets2D_BoostedRew = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi+'*'+reweighting, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
 TTJets2D_Boosted = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
@@ -253,34 +278,35 @@ for metBin in range(len(metBins)):
     DataHist_pos    = ROOT.TH1F("DataHist_pos", "", 2,-0.5,1.5)
     DataHist_neg    = ROOT.TH1F("DataHist_neg", "", 2,-0.5,1.5)
     
-    for x,y in [(WJets2D_pos,WJetsHist_pos), (WJets2D_neg,WJetsHist_neg), (TTJets2D,TTJetsHist), (Data2D_pos,DataHist_pos), (Data2D_neg,DataHist_neg)]:
-        for i in range(2):
-            y.SetBinContent(i+1, x.GetBinContent(metBin+1, i+1))
-            y.SetBinError(i+1, x.GetBinError(metBin+1, i+1))
-            #print y.GetBinContent(i+1)
-            #print y.GetBinError(i+1)
+    #for x,y in [(WJets2D_pos,WJetsHist_pos), (WJets2D_neg,WJetsHist_neg), (TTJets2D,TTJetsHist), (Data2D_pos,DataHist_pos), (Data2D_neg,DataHist_neg)]:
+    #    for i in range(2):
+    #        y.SetBinContent(i+1, x.GetBinContent(metBin+1, i+1))
+    #        y.SetBinError(i+1, x.GetBinError(metBin+1, i+1))
 
-    ## get prefit histograms. could cache this?
-    #print "W+jets templates"
-    #WJetsHist_pos   = WJets.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi)
-    #WJetsHist_neg   = WJets.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi)
-    #print "tt+jets templates"
-    #TTJetsHist      = TTJets.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString, weightString='weight * w_pu *'+lumi)
-    ##print "diboson templates"
-    ##DibosonHist_pos = Diboson.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi)
-    ##DibosonHist_neg = Diboson.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi)
-    #print "data templates"
-    #DataHist_pos    = Data.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString+"&&%s>0"%pdgid, weightString='(1)')
-    #DataHist_neg    = Data.get1DHistoFromDraw('ngoodbtags', [2,-0.5,1.5], selectionString=selectionString+"&&%s<0"%pdgid, weightString='(1)')
+    for i in range(2):
+        WJetsHist_pos.SetBinContent(i+1, WJets2D_pos.GetBinContent(metBin+1, i+1) + WX2D_pos.GetBinContent(metBin+1, i+1))
+        WJetsHist_pos.SetBinError(i+1,   math.sqrt(WJets2D_pos.GetBinError(metBin+1, i+1)**2 + WX2D_pos.GetBinError(metBin+1, i+1)**2))
+
+        WJetsHist_neg.SetBinContent(i+1, WJets2D_neg.GetBinContent(metBin+1, i+1) + WX2D_neg.GetBinContent(metBin+1, i+1))
+        WJetsHist_neg.SetBinError(i+1,   math.sqrt(WJets2D_neg.GetBinError(metBin+1, i+1)**2 + WX2D_neg.GetBinError(metBin+1, i+1)**2))
+
+        TTJetsHist.SetBinContent(i+1, TTJets2D.GetBinContent(metBin+1, i+1))
+        TTJetsHist.SetBinError(i+1,   TTJets2D.GetBinError(metBin+1, i+1))
+
+        DataHist_pos.SetBinContent(i+1, Data2D_pos.GetBinContent(metBin+1, i+1))
+        DataHist_pos.SetBinError(i+1,   Data2D_pos.GetBinError(metBin+1, i+1))
+
+        DataHist_neg.SetBinContent(i+1, Data2D_neg.GetBinContent(metBin+1, i+1))
+        DataHist_neg.SetBinError(i+1,   Data2D_neg.GetBinError(metBin+1, i+1))
     
+    W_prefit = getIntegralAndError(WJetsHist_pos) + getIntegralAndError(WJetsHist_neg)
+    tt_prefit = getIntegralAndError(TTJetsHist)
     print "## Prefit Values ##"
-    print WJetsHist_pos.GetBinContent(1), WJetsHist_pos.GetBinContent(2)
-    print WJetsHist_neg.GetBinContent(1), WJetsHist_neg.GetBinContent(2)
-    print TTJetsHist.GetBinContent(1), TTJetsHist.GetBinContent(2)
-    #print DibosonHist_pos.GetBinContent(1), DibosonHist_pos.GetBinContent(2)
-    #print DibosonHist_neg.GetBinContent(1), DibosonHist_neg.GetBinContent(2)
-    print DataHist_pos.GetBinContent(1), DataHist_pos.GetBinContent(2)
-    print DataHist_neg.GetBinContent(1), DataHist_neg.GetBinContent(2)
+    print "W+jets, pos", WJetsHist_pos.GetBinContent(1), WJetsHist_pos.GetBinContent(2)
+    print "W+jets, neg", WJetsHist_neg.GetBinContent(1), WJetsHist_neg.GetBinContent(2)
+    print "tt+jets", TTJetsHist.GetBinContent(1), TTJetsHist.GetBinContent(2)
+    print "Data, pos", DataHist_pos.GetBinContent(1), DataHist_pos.GetBinContent(2)
+    print "Data, neg", DataHist_neg.GetBinContent(1), DataHist_neg.GetBinContent(2)
     
     # get templates (= normalized prefit histograms)
     WJetsTemp_pos = WJetsHist_pos.Clone()
@@ -289,11 +315,7 @@ for metBin in range(len(metBins)):
     WJetsTemp_neg.Scale(1./WJetsTemp_neg.Integral())
     TTJetsTemp = TTJetsHist.Clone()
     TTJetsTemp.Scale(1./TTJetsTemp.Integral())
-    #DibosonTemp_pos = DibosonHist_pos.Clone()
-    #DibosonTemp_pos.Scale(1./DibosonTemp_pos.Integral())
-    #DibosonTemp_neg = DibosonHist_neg.Clone()
-    #DibosonTemp_neg.Scale(1./DibosonTemp_neg.Integral())
-    
+
     # do the bootstrap
     yields_WJets_0b_postFit = []
     for i in range(1):
@@ -315,28 +337,18 @@ for metBin in range(len(metBins)):
         wjets_hist_pos      = ROOT.RooDataHist("wjets", "wjets", ROOT.RooArgList(x), WJetsHist_pos)
         wjets_hist_neg      = ROOT.RooDataHist("wjets", "wjets", ROOT.RooArgList(x), WJetsHist_neg)
         ttjets_hist         = ROOT.RooDataHist("ttjets", "ttjets", ROOT.RooArgList(x), TTJetsHist)
-    #    diboson_hist_pos    = ROOT.RooDataHist("diboson", "diboson", ROOT.RooArgList(x), DibosonHist_pos)
-    #    diboson_hist_neg    = ROOT.RooDataHist("diboson", "diboson", ROOT.RooArgList(x), DibosonHist_neg)
         
         #Define yields as variable
         yield_WJets_pos     = ROOT.RooRealVar("yield_WJets_pos","yield_WJets_pos",0.1,0,10**5)
         yield_WJets_neg     = ROOT.RooRealVar("yield_WJets_neg","yield_WJets_neg",0.1,0,10**5)
         yield_TTJets        = ROOT.RooRealVar("yield_TTJets","yield_TTJets",0.1,0,10**5)
-    #    yield_Diboson_pos   = ROOT.RooRealVar("yield_Diboson_pos","yield_Diboson_pos", DibosonHist_pos.Integral(), DibosonHist_pos.Integral(), DibosonHist_pos.Integral())
-    #    yield_Diboson_neg   = ROOT.RooRealVar("yield_Diboson_neg","yield_Diboson_neg", DibosonHist_neg.Integral(), DibosonHist_neg.Integral(), DibosonHist_neg.Integral())
-    #    yield_Diboson_pos.setConstant() # to be tested
-    #    yield_Diboson_neg.setConstant() # to be tested
         
         #Make PDF from MC histograms
         model_WJets_pos     = ROOT.RooHistPdf("model_WJets_pos", "model_WJets_pos", ROOT.RooArgSet(x), wjets_hist_pos)
         model_WJets_neg     = ROOT.RooHistPdf("model_WJets_neg", "model_WJets_neg", ROOT.RooArgSet(x), wjets_hist_neg)
         model_TTJets        = ROOT.RooHistPdf("model_TTJets", "model_TTJets", ROOT.RooArgSet(x), ttjets_hist)
-    #    model_Diboson_pos   = ROOT.RooHistPdf("model_Diboson_pos", "model_Diboson_pos", ROOT.RooArgSet(x), diboson_hist_pos)
-    #    model_Diboson_neg   = ROOT.RooHistPdf("model_Diboson_neg", "model_Diboson_neg", ROOT.RooArgSet(x), diboson_hist_neg)
         
         #Make combined PDF of all MC Backgrounds
-        #model_total_pos = ROOT.RooAddPdf("model_total_pos", "model_total_pos", ROOT.RooArgList(model_WJets_pos, model_TTJets, model_Diboson_pos), ROOT.RooArgList(yield_WJets_pos, yield_TTJets, yield_Diboson_pos))
-        #model_total_neg = ROOT.RooAddPdf("model_total_neg", "model_total_neg", ROOT.RooArgList(model_WJets_neg, model_TTJets, model_Diboson_neg), ROOT.RooArgList(yield_WJets_neg, yield_TTJets, yield_Diboson_neg))
         model_total_pos = ROOT.RooAddPdf("model_total_pos", "model_total_pos", ROOT.RooArgList(model_WJets_pos, model_TTJets), ROOT.RooArgList(yield_WJets_pos, yield_TTJets))
         model_total_neg = ROOT.RooAddPdf("model_total_neg", "model_total_neg", ROOT.RooArgList(model_WJets_neg, model_TTJets), ROOT.RooArgList(yield_WJets_neg, yield_TTJets))
         
@@ -360,8 +372,6 @@ for metBin in range(len(metBins)):
         print "yield_WJets_pos:" , yield_WJets_pos.getVal()
         print "yield_WJets_neg:" , yield_WJets_neg.getVal()
         print "yield_TTJets:" , yield_TTJets.getVal()
-        #print "yield_Dibosoon_pos:" , yield_Diboson_pos.getVal()
-        #print "yield_Dibosoon_neg:" , yield_Diboson_neg.getVal()
         
         yield_WJets_0b_postFit  = yield_WJets_pos.getVal()*WJetsTemp_pos_.GetBinContent(1)+yield_WJets_neg.getVal()*WJetsTemp_neg_.GetBinContent(1)
         yield_WJets_0b_preFit   = WJetsHist_pos.GetBinContent(1)+WJetsHist_neg.GetBinContent(1)
@@ -389,9 +399,12 @@ for metBin in range(len(metBins)):
         if i == 0:
             pos_val = af(yield_WJets_pos.getVal(), yield_WJets_pos.getErrorHi(), -yield_WJets_pos.getErrorLo())
             neg_val = af(yield_WJets_neg.getVal(), yield_WJets_neg.getErrorHi(), -yield_WJets_neg.getErrorLo())
-            f_pos = af(WJetsTemp_pos.GetBinContent(1), WJetsTemp_pos.GetBinError(1))
-            f_neg = af(WJetsTemp_neg.GetBinContent(1), WJetsTemp_neg.GetBinError(1))
-            W_0b = f_pos*pos_val + f_neg*neg_val
+            f_pos   = af(WJetsTemp_pos.GetBinContent(1), WJetsTemp_pos.GetBinError(1))
+            f_neg   = af(WJetsTemp_neg.GetBinContent(1), WJetsTemp_neg.GetBinError(1))
+            W_0b    = f_pos*pos_val + f_neg*neg_val
+            SF_W    = (pos_val+neg_val) / W_prefit
+            print "yield_TTJets, again:",  yield_TTJets.getVal()
+            SF_top  = af(yield_TTJets.getVal()*2, yield_TTJets.getErrorHi()*math.sqrt(2)) / tt_prefit
 
             c1=ROOT.TCanvas("c1","FitModel",650,1000)
             ROOT.gROOT.SetStyle("Plain")
@@ -415,24 +428,120 @@ for metBin in range(len(metBins)):
             c1.Print('./%s_nBTagFitRes_%s.png'%(year, MET_string))
             c1.Print('./%s_nBTagFitRes_%s.pdf'%(year, MET_string))
             c1.Print('./%s_nBTagFitRes_%s.root'%(year, MET_string))
+
+            # make the more beautiful plot
+            can = ROOT.TCanvas('can','',650,650)
+            
+            WJetsHist_pos_postFit = WJetsTemp_pos.Clone()
+            WJetsHist_pos_postFit.Scale(yield_WJets_pos.getVal())
+            WJetsHist_neg_postFit = WJetsTemp_neg.Clone()
+            WJetsHist_neg_postFit.Scale(yield_WJets_neg.getVal())
+            WJetsHist_pos_postFit.Add(WJetsHist_neg_postFit)
+            TTJetsHist_postFit = TTJetsTemp.Clone()
+            TTJetsHist_postFit.Scale(2*yield_TTJets.getVal())
+            Total_postFit = WJetsHist_pos_postFit.Clone()
+            Total_postFit.Add(TTJetsHist_postFit)
+            
+            Data_postFit = DataHist_pos.Clone()
+            Data_postFit.Add(DataHist_neg)
+            Data_postFit.SetMarkerSize(1)
+            Data_postFit.SetMarkerStyle(20)
+            
+            WJetsHist_pos_postFit.SetLineColor(8)
+            WJetsHist_pos_postFit.SetLineWidth(2)
+            TTJetsHist_postFit.SetLineColor(46)
+            TTJetsHist_postFit.SetLineWidth(2)
+            Total_postFit.SetLineColor(1)
+            Total_postFit.SetLineWidth(2)
     
+            # prefit
+            WJetsHist_pos.Add(WJetsHist_neg)
+            #TTJetsHist.Add(TTJetsHist)
+            
+            WJetsHist_pos.SetLineColor(8)
+            WJetsHist_pos.SetLineWidth(2)
+            WJetsHist_pos.SetLineStyle(2)
+            TTJetsHist.SetLineColor(46)
+            TTJetsHist.SetLineWidth(2)
+            TTJetsHist.SetLineStyle(2)
+
+            TTJetsHist.SetMaximum(Data_postFit.Integral()*1.3)
+            TTJetsHist.SetMinimum(0)
+            TTJetsHist.GetXaxis().SetTitle('n_{ b}')
+            TTJetsHist.GetXaxis().SetTitleSize(0.065)
+            TTJetsHist.GetXaxis().SetBinLabel(1,'0')
+            TTJetsHist.GetXaxis().SetBinLabel(2,'1')
+            TTJetsHist.GetXaxis().SetLabelSize(0.08)
+          
+            TTJetsHist.GetYaxis().SetTitle('Events')
+            TTJetsHist.GetYaxis().SetTitleOffset(1.4)
+            TTJetsHist.GetYaxis().SetNdivisions(508)
+
+
+            TTJetsHist.Draw("hist")
+            WJetsHist_pos.Draw("hist same")
+            WJetsHist_pos_postFit.Draw("hist same")
+            TTJetsHist_postFit.Draw("hist same")
+            Total_postFit.Draw("hist same")
+            Data_postFit.Draw("e1p same")
+
+            leg = ROOT.TLegend(0.62,0.6,0.98,0.95)
+            leg.SetFillColor(ROOT.kWhite)
+            leg.SetShadowColor(ROOT.kWhite)
+            leg.SetBorderSize(1)
+            leg.SetTextSize(0.035)
+            leg.AddEntry(Data_postFit, 'Data', 'e1p')
+            leg.AddEntry(Total_postFit, 'Total (post-fit)', 'l')
+            leg.AddEntry(WJetsHist_pos_postFit, 'W+jets/VV (postfit)', 'l')
+            leg.AddEntry(TTJetsHist_postFit, 'top (postfit)', 'l')
+            leg.AddEntry(WJetsHist_pos, 'W+jets/VV (prefit)', 'l')
+            leg.AddEntry(TTJetsHist, 'top (prefit)', 'l')
+            leg.Draw()
+
+            latex1 = ROOT.TLatex()
+            latex1.SetNDC()
+            latex1.SetTextSize(0.04)
+            latex1.SetTextAlign(11)
+
+            latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
+            latex1.DrawLatex(0.71,0.96,"#bf{%s fb^{-1} (13 TeV)}"%lumi)
+
+            latex2 = ROOT.TLatex()
+            latex2.SetNDC()
+            latex2.SetTextSize(0.04)
+            latex2.SetTextAlign(11)
+            latex1.DrawLatex(0.62,0.55,'SF_{W} = %.2f'%SF_W)
+            latex1.DrawLatex(0.62,0.50,"SF_{top} = %.2f"%SF_top)
+
+            can.Print('./%s_nBTagFitRes_nice_%s.png'%(year, MET_string))
+            can.Print('./%s_nBTagFitRes_nice_%s.pdf'%(year, MET_string))
+            can.Print('./%s_nBTagFitRes_nice_%s.root'%(year, MET_string))
+
+
     results = sorted(yields_WJets_0b_postFit)
     
     #print "Central:", results[50]
     #print "Min:", results[15]
     #print "Max:", results[83]
 
-    R_W = (af(WJets2D_pos.GetBinContent(metBin+1, 3), WJets2D_pos.GetBinError(metBin+1, 3))+af(WJets2D_neg.GetBinContent(metBin+1, 3), WJets2D_neg.GetBinError(metBin+1, 3)))/(af(WJets2D_pos.GetBinContent(metBin+1, 1), WJets2D_pos.GetBinError(metBin+1, 1))+af(WJets2D_neg.GetBinContent(metBin+1, 1), WJets2D_neg.GetBinError(metBin+1, 1)))
+    WX_contrib = max((WX2D_pos.GetBinContent(metBin+1, 3)+WX2D_neg.GetBinContent(metBin+1, 3)), 0)
+    if WX_contrib > 0: WX_contrib = af(WX_contrib, math.sqrt(WX2D_pos.GetBinError(metBin+1, 3)**2+WX2D_neg.GetBinError(metBin+1, 3)**2))
+    else: WX_contrib = af(0, 0.001)
+    R_W_denom   = af(WJets2D_pos.GetBinContent(metBin+1, 3), WJets2D_pos.GetBinError(metBin+1, 3)) + af(WJets2D_neg.GetBinContent(metBin+1, 3), WJets2D_neg.GetBinError(metBin+1, 3)) + WX_contrib
+    R_W_num     = af(WJets2D_pos.GetBinContent(metBin+1, 1), WJets2D_pos.GetBinError(metBin+1, 1)) + af(WJets2D_neg.GetBinContent(metBin+1, 1), WJets2D_neg.GetBinError(metBin+1, 1)) + af(WX2D_pos.GetBinContent(metBin+1, 1), WX2D_pos.GetBinError(metBin+1, 1)) + af(WX2D_neg.GetBinContent(metBin+1, 1), WX2D_neg.GetBinError(metBin+1, 1))
+    R_W         = R_W_denom/R_W_num
     y_inclH = af(WJets2D_Higgs.GetBinContent(metBin+1, 2), WJets2D_Higgs.GetBinError(metBin+1, 2)) + af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))
     R_1H = af(WJets2D_Higgs.GetBinContent(metBin+1, 2), WJets2D_Higgs.GetBinError(metBin+1, 2))/y_inclH
     R_0H = af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))/y_inclH
-    numerator = af(WJets2D_Boosted.GetBinContent(metBin+1,1)+WJets2D_Boosted.GetBinContent(i,2), 0) # stat uncertainty of W+jets already in R_W
+    numerator = af(WJets2D_Boosted.GetBinContent(metBin+1,1)+WJets2D_Boosted.GetBinContent(metBin+1,2), 0.01) # stat uncertainty of W+jets already in R_W
     R_1H_mistag = af(WJets2D_BoostedRew.GetBinContent(metBin+1,2), WJets2D_BoostedRew.GetBinError(metBin+1,2))/numerator
-    R_0H_mistag = af(1,0) - R_1H_mistag 
-    W_pred[metBins[metBin]] = {'0b':W_0b, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H, '2b,1Hm':W_0b*R_W*R_1H_mistag, '2b,0Hm':W_0b*R_W*R_0H_mistag}
+    R_0H_mistag = af(1,0.01) - R_1H_mistag 
+    W_pred[metBins[metBin]] = {'0b':W_0b, 'SF_W':SF_W, 'SF_top':SF_top, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H, '2b,1Hm':W_0b*R_W*R_1H_mistag, '2b,0Hm':W_0b*R_W*R_0H_mistag}
     
     # need to set the uncertainty for 0 to 1.8410*weight -> which weight? inclusive Fall17 W+jets sample has weight of >20 for 41.5/fb. Need to check!
     
+    #FIXME
+    # no delta uncertainty in here yet! 
     print "R_W:", R_W
 
 WJetsHist_pred = ROOT.TH1F('WJetsHist_pred', '', 8,0,8)
@@ -452,10 +561,10 @@ for i,metBin in enumerate(metBins):
     TTJetsHist_pred.SetBinError(2*i+1, TTJets2D_Higgs.GetBinError(i+1, 1))
     TTJetsHist_pred.SetBinContent(2*i+2, TTJets2D_Higgs.GetBinContent(i+1, 2))
     TTJetsHist_pred.SetBinError(2*i+2, TTJets2D_Higgs.GetBinError(i+1, 2))
-    WJetsHist_pred.SetBinContent(2*i+1, W_pred[metBin]['2b,0H'].central)
-    WJetsHist_pred.SetBinError(2*i+1, W_pred[metBin]['2b,0H'].up)
-    WJetsHist_pred.SetBinContent(2*i+2, W_pred[metBin]['2b,1H'].central)
-    WJetsHist_pred.SetBinError(2*i+2, W_pred[metBin]['2b,1H'].up)
+    WJetsHist_pred.SetBinContent(2*i+1, W_pred[metBin]['2b,0Hm'].central)
+    WJetsHist_pred.SetBinError(2*i+1, W_pred[metBin]['2b,0Hm'].up)
+    WJetsHist_pred.SetBinContent(2*i+2, W_pred[metBin]['2b,1Hm'].central)
+    WJetsHist_pred.SetBinError(2*i+2, W_pred[metBin]['2b,1Hm'].up)
     DataHist_obs.SetBinContent(i+1, Data2D_pos.GetBinContent(i+1,3)+Data2D_neg.GetBinContent(i+1,3))
 
 boxes = []
@@ -496,6 +605,15 @@ plotting.draw(
     drawObjects = boxes,
 )
 
+plotting.draw(
+    Plot.fromHisto(name = 'Closure_log_%s'%year, histos = [[ WJetsHist_pred,TTJetsHist_pred ], [ DataHist_obs] ], texX = "p_{T}^{miss} bins", texY = "Events"),
+    plot_directory = plot_path,
+    yRange = (0.01,90),
+    ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
+    logX = False, logY = True, sorting = False,
+    drawObjects = boxes,
+)
+
 ## systematics
 #selectionString_2l  = dilepSelection+"&&pass&&nvetoleps==2&&PassTrackVeto&&PassTauVeto&&ngoodjets>=2&&mct>200&&mbb>90&&mbb<150&&(lep1_pdgid*lep2_pdgid<0)"
 selectionString_2l  = dilepSelection+"&&pass&&nvetoleps==2&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&mct>200&&mbb>90&&mbb<150&&(lep1_pdgid*lep2_pdgid<0)"
@@ -505,7 +623,7 @@ selectionString_2l += "&&abs(%s-91.2)<5"%invariantMass
 Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1)")
 
 ## first double ratio for mbb extrapolation - only mbb selection to be determined
-print "Working on b-tagging double ration"
+print "Working on b-tagging double ratio"
 mc_2b = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==2",'weight * w_pu *'+yearWeight)
 mc_0b = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==0",'weight * w_pu *'+yearWeight)
 data_2b = Data.getYieldFromDraw(selectionString_2l+"&&ngoodbtags==2",'(1)')
@@ -516,10 +634,12 @@ mc_0b = af(mc_0b['val'], mc_0b['sigma'])
 data_2b = af(data_2b['val'], data_2b['sigma'])
 data_0b = af(data_0b['val'], data_0b['sigma'])
 
-print "2l b-tag double ratio:", (data_2b/data_0b)/(mc_2b/mc_0b)
+delta_b = (data_2b/data_0b)/(mc_2b/mc_0b)
+print "2l b-tag double ratio:", delta_b
 
 ## second double ratio for higgs tagging - under devolpment
 mc_1h = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==1",'weight * w_pu *'+lumi)
+mc_rew = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_pt>0)==1",'weight * w_pu *'+lumi+'*'+reweighting)
 mc_0h = DYJets.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==0",'weight * w_pu *'+lumi)
 
 data_1h = Data.getYieldFromDraw(selectionString_2l+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==1",'(1)')

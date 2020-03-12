@@ -7,14 +7,20 @@ Some spaghetti code for W+jets estimation. Will at some point live in a differen
 import ROOT
 import glob
 import math
+import os
+import pickle
 
 from ROOT import RooFit as rf
 from RootTools.core.standard import *
 
 from WH_studies.Tools.asym_float import asym_float as af
 
-ROOT.gROOT.LoadMacro('../../../RootTools/plot/scripts/tdrstyle.C')
-ROOT.setTDRStyle()
+
+#!/usr/bin/env python
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
+(options, args) = parser.parse_args()
 
 def getRandomHistOfTemplate(hist, color=ROOT.kOrange):
     h = ROOT.TH1F()
@@ -33,7 +39,7 @@ def getIntegralAndError(hist):
     val = hist.IntegralAndError(0,1000,err)
     return af(val,err)
 
-year = 2016
+year = int(options.year)
 
 if year == 2016:
     # definitions
@@ -238,31 +244,54 @@ dilepSelection     = "(Sum$(abs(lep1_pdgid)==11&&(leps_pt[0]>30&&(lep1_relIso*le
 dilepSelection    += "Sum$(abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1)))==2"
 
 #raise NotImplementedError
-
-print "W+jets templates"
-WJets2D_pos = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-WJets2D_neg = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-
-WX2D_pos = WX.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-WX2D_neg = WX.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-
-WJets2D_Higgs = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-TTJets2D_Higgs = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-
+    
 ## fancy reweighting for Higgs tag estimation
 reweighting = "((ak8pfjets_pt[0]>170&&ak8pfjets_pt[0]<250)*0.05 + (ak8pfjets_pt[0]>250&&ak8pfjets_pt[0]<300)*0.15 + (ak8pfjets_pt[0]>300&&ak8pfjets_pt[0]<400)*0.27 + (ak8pfjets_pt[0]>400&&ak8pfjets_pt[0]<500)*0.35 + (ak8pfjets_pt[0]>500&&ak8pfjets_pt[0]<750)*0.40 + (ak8pfjets_pt[0]>750)*0.35)"
 
-## what to do with boosted stuff in WX?? #FIXME
-WJets2D_Boosted = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-WJets2D_BoostedRew = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi+'*'+reweighting, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-TTJets2D_Boosted = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+histogramPickle = 'histograms_%s.pkl'%year
 
-print "tt+jets templates"
-TTJets2D = TTJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+if not os.path.isfile(histogramPickle):
 
-print "data templates"
-Data2D_pos = Data.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='(1)', binningIsExplicit=True) # x-pfmet, y-ngoodbtags
-Data2D_neg = Data.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='(1)', binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    print "W+jets templates"
+    WJets2D_pos = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    WJets2D_neg = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    
+    WX2D_pos = WX.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    WX2D_neg = WX.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    
+    WJets2D_Higgs = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    TTJets2D_Higgs = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_deepdisc_hbb>0.8):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    
+    ## what to do with boosted stuff in WX?? #FIXME
+    WJets2D_Boosted = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    WJets2D_BoostedRew = WJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi+'*'+reweighting, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    TTJets2D_Boosted = TTJets.get2DHistoFromDraw('Sum$(ak8pfjets_pt>170):pfmet', [[125,200,300,400,1000], [-0.5,0.5,10]], selectionString=selectionString+"&&ngoodbtags==2", weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    
+    print "tt+jets templates"
+    TTJets2D = TTJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString, weightString='weight * w_pu *'+lumi, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    
+    print "data templates"
+    Data2D_pos = Data.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString='(1)', binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+    Data2D_neg = Data.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s<0"%pdgid, weightString='(1)', binningIsExplicit=True) # x-pfmet, y-ngoodbtags
+
+    histograms = {'WJets2D_pos':WJets2D_pos, 'WJets2D_neg':WJets2D_neg, 'WX2D_pos':WX2D_pos, 'WX2D_neg':WX2D_neg, 'WJets2D_Higgs':WJets2D_Higgs, 'TTJets2D_Higgs':TTJets2D_Higgs, 'WJets2D_Boosted':WJets2D_Boosted, 'WJets2D_BoostedRew':WJets2D_BoostedRew, 'TTJets2D_Boosted':TTJets2D_Boosted, 'TTJets2D':TTJets2D, 'Data2D_pos':Data2D_pos, 'Data2D_neg':Data2D_neg}
+    pickle.dump(histograms, file(histogramPickle, 'w'))
+
+else:
+    histograms = pickle.load(file(histogramPickle))
+    WJets2D_pos     = histograms['WJets2D_pos']
+    WJets2D_neg     = histograms['WJets2D_neg']
+    WX2D_pos        = histograms['WX2D_pos']
+    WX2D_neg        = histograms['WX2D_neg']
+    WJets2D_Higgs   = histograms['WJets2D_Higgs']
+    TTJets2D_Higgs  = histograms['TTJets2D_Higgs']
+    WJets2D_Boosted = histograms['WJets2D_Boosted']
+    WJets2D_BoostedRew = histograms['WJets2D_BoostedRew']
+    TTJets2D_Boosted = histograms['TTJets2D_Boosted']
+    TTJets2D        = histograms['TTJets2D']
+    Data2D_pos      = histograms['Data2D_pos']
+    Data2D_neg      = histograms['Data2D_neg']
+
 
 metBins = [(125,200), (200,300), (300,400), (400,-1)]
 
@@ -406,31 +435,30 @@ for metBin in range(len(metBins)):
             print "yield_TTJets, again:",  yield_TTJets.getVal()
             SF_top  = af(yield_TTJets.getVal()*2, yield_TTJets.getErrorHi()*math.sqrt(2)) / tt_prefit
 
-            c1=ROOT.TCanvas("c1","FitModel",650,1000)
-            ROOT.gROOT.SetStyle("Plain")
-            c1.Divide(1,2)
-            c1.cd(1)
-            ROOT.gROOT.SetStyle("Plain")#Removesgraybackgroundfromplots
-            ROOT.gPad.SetLeftMargin(0.15)
-            fitFrame_PosPdg.GetYaxis().SetTitleOffset(1.4)
-            fitFrame_PosPdg.GetXaxis().SetTitle("N_{b}")
-            fitFrame_PosPdg.Draw()
-            
-            c1.cd(2)
-            ROOT.gROOT.SetStyle("Plain")#Removesgraybackgroundfromplots
-            ROOT.gPad.SetLeftMargin(0.15)
-            fitFrame_NegPdg.GetYaxis().SetTitleOffset(1.4)
-            fitFrame_NegPdg.GetXaxis().SetTitle("N_{b}")
-            fitFrame_NegPdg.Draw()
-            
-            MET_string = "%s_%s"%(metBins[metBin][0], metBins[metBin][1])
-            
-            c1.Print('./%s_nBTagFitRes_%s.png'%(year, MET_string))
-            c1.Print('./%s_nBTagFitRes_%s.pdf'%(year, MET_string))
-            c1.Print('./%s_nBTagFitRes_%s.root'%(year, MET_string))
+            #c1=ROOT.TCanvas("c1","FitModel",650,1000)
+            #ROOT.gROOT.SetStyle("Plain")
+            #c1.Divide(1,2)
+            #c1.cd(1)
+            #ROOT.gROOT.SetStyle("Plain")#Removesgraybackgroundfromplots
+            #ROOT.gPad.SetLeftMargin(0.15)
+            #fitFrame_PosPdg.GetYaxis().SetTitleOffset(1.4)
+            #fitFrame_PosPdg.GetXaxis().SetTitle("N_{b}")
+            #fitFrame_PosPdg.Draw()
+            #
+            #c1.cd(2)
+            #ROOT.gROOT.SetStyle("Plain")#Removesgraybackgroundfromplots
+            #ROOT.gPad.SetLeftMargin(0.15)
+            #fitFrame_NegPdg.GetYaxis().SetTitleOffset(1.4)
+            #fitFrame_NegPdg.GetXaxis().SetTitle("N_{b}")
+            #fitFrame_NegPdg.Draw()
+            #
+            #
+            #c1.Print('./%s_nBTagFitRes_%s.png'%(year, MET_string))
+            #c1.Print('./%s_nBTagFitRes_%s.pdf'%(year, MET_string))
+            #c1.Print('./%s_nBTagFitRes_%s.root'%(year, MET_string))
 
             # make the more beautiful plot
-            can = ROOT.TCanvas('can','',650,650)
+            MET_string = "%s_%s"%(metBins[metBin][0], metBins[metBin][1])
             
             WJetsHist_pos_postFit = WJetsTemp_pos.Clone()
             WJetsHist_pos_postFit.Scale(yield_WJets_pos.getVal())
@@ -444,78 +472,74 @@ for metBin in range(len(metBins)):
             
             Data_postFit = DataHist_pos.Clone()
             Data_postFit.Add(DataHist_neg)
-            Data_postFit.SetMarkerSize(1)
-            Data_postFit.SetMarkerStyle(20)
+            #Data_postFit.syle = styles.errorStyle(ROOT.kBlack, markerSize=2, width=1)
+            Data_postFit.drawOption = 'e1p'
+            Data_postFit.legendText = 'Data'
             
-            WJetsHist_pos_postFit.SetLineColor(8)
-            WJetsHist_pos_postFit.SetLineWidth(2)
-            TTJetsHist_postFit.SetLineColor(46)
-            TTJetsHist_postFit.SetLineWidth(2)
-            Total_postFit.SetLineColor(1)
-            Total_postFit.SetLineWidth(2)
-    
+            WJetsHist_pos_postFit.style = styles.lineStyle(8, width=2, errors=False)
+            TTJetsHist_postFit.style = styles.lineStyle(46, width=2, errors=False)
+            Total_postFit.style = styles.lineStyle(ROOT.kBlue+1, width=2, errors=True)
+            
+            WJetsHist_pos_postFit.legendText = 'W+jets/VV (postfit)'
+            TTJetsHist_postFit.legendText = 'top (postfit)'
+            Total_postFit.legendText = 'Total (post-fit)'
+
+
             # prefit
             WJetsHist_pos.Add(WJetsHist_neg)
-            #TTJetsHist.Add(TTJetsHist)
             
-            WJetsHist_pos.SetLineColor(8)
-            WJetsHist_pos.SetLineWidth(2)
-            WJetsHist_pos.SetLineStyle(2)
-            TTJetsHist.SetLineColor(46)
-            TTJetsHist.SetLineWidth(2)
-            TTJetsHist.SetLineStyle(2)
+            WJetsHist_pos.style = styles.lineStyle(8, width=2, dashed=True)
+            TTJetsHist.style = styles.lineStyle(46, width=2, dashed=True)
 
-            TTJetsHist.SetMaximum(Data_postFit.Integral()*1.3)
-            TTJetsHist.SetMinimum(0)
-            TTJetsHist.GetXaxis().SetTitle('n_{ b}')
-            TTJetsHist.GetXaxis().SetTitleSize(0.065)
-            TTJetsHist.GetXaxis().SetBinLabel(1,'0')
-            TTJetsHist.GetXaxis().SetBinLabel(2,'1')
-            TTJetsHist.GetXaxis().SetLabelSize(0.08)
-          
-            TTJetsHist.GetYaxis().SetTitle('Events')
-            TTJetsHist.GetYaxis().SetTitleOffset(1.4)
-            TTJetsHist.GetYaxis().SetNdivisions(508)
+            WJetsHist_pos.legendText = 'W+jets/VV (prefit)'
+            TTJetsHist.legendText = 'top (prefit)'
 
+            plot_path = './'
 
-            TTJetsHist.Draw("hist")
-            WJetsHist_pos.Draw("hist same")
-            WJetsHist_pos_postFit.Draw("hist same")
-            TTJetsHist_postFit.Draw("hist same")
-            Total_postFit.Draw("hist same")
-            Data_postFit.Draw("e1p same")
+            histos = [[Data_postFit], [WJetsHist_pos_postFit], [TTJetsHist_postFit], [Total_postFit], [WJetsHist_pos], [TTJetsHist] ]
 
-            leg = ROOT.TLegend(0.62,0.6,0.98,0.95)
-            leg.SetFillColor(ROOT.kWhite)
-            leg.SetShadowColor(ROOT.kWhite)
-            leg.SetBorderSize(1)
-            leg.SetTextSize(0.035)
-            leg.AddEntry(Data_postFit, 'Data', 'e1p')
-            leg.AddEntry(Total_postFit, 'Total (post-fit)', 'l')
-            leg.AddEntry(WJetsHist_pos_postFit, 'W+jets/VV (postfit)', 'l')
-            leg.AddEntry(TTJetsHist_postFit, 'top (postfit)', 'l')
-            leg.AddEntry(WJetsHist_pos, 'W+jets/VV (prefit)', 'l')
-            leg.AddEntry(TTJetsHist, 'top (prefit)', 'l')
-            leg.Draw()
+            def drawObjects( isData=False, lumi=36 ):
+                tex = ROOT.TLatex()
+                tex.SetNDC()
+                tex.SetTextSize(0.05)
+                tex.SetTextAlign(11) # align right
+                lines = [
+                  (0.08, 0.945, 'CMS Simulation') if not isData else (0.15, 0.945, 'CMS #bf{#it{Preliminary}}'),
+                  (0.60, 0.945, '#bf{%s fb^{-1} (13 TeV)}'%lumi ),
+                  (0.62,0.55,'SF_{W} = %.2f'%SF_W),
+                  (0.62,0.50,"SF_{top} = %.2f"%SF_top)
+                ]
+                return [tex.DrawLatex(*l) for l in lines]
+            drawObjects = drawObjects( isData=True, lumi=lumi )
 
-            latex1 = ROOT.TLatex()
-            latex1.SetNDC()
-            latex1.SetTextSize(0.04)
-            latex1.SetTextAlign(11)
+            plotting.draw(
+                Plot.fromHisto(name = '%s_nBTagFitRes_nice_%s'%(year, MET_string), histos = histos, texX = "N_{b}", texY = "Events"),
+                plot_directory = plot_path,
+                #yRange = (0.0,6.5),
+                #ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
+                logX = False, logY = False, sorting = False,
+                drawObjects = drawObjects,
+            )
 
-            latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
-            latex1.DrawLatex(0.71,0.96,"#bf{%s fb^{-1} (13 TeV)}"%lumi)
+            
+            #latex1 = ROOT.TLatex()
+            #latex1.SetNDC()
+            #latex1.SetTextSize(0.04)
+            #latex1.SetTextAlign(11)
 
-            latex2 = ROOT.TLatex()
-            latex2.SetNDC()
-            latex2.SetTextSize(0.04)
-            latex2.SetTextAlign(11)
-            latex1.DrawLatex(0.62,0.55,'SF_{W} = %.2f'%SF_W)
-            latex1.DrawLatex(0.62,0.50,"SF_{top} = %.2f"%SF_top)
+            #latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
+            #latex1.DrawLatex(0.71,0.96,"#bf{%s fb^{-1} (13 TeV)}"%lumi)
 
-            can.Print('./%s_nBTagFitRes_nice_%s.png'%(year, MET_string))
-            can.Print('./%s_nBTagFitRes_nice_%s.pdf'%(year, MET_string))
-            can.Print('./%s_nBTagFitRes_nice_%s.root'%(year, MET_string))
+            #latex2 = ROOT.TLatex()
+            #latex2.SetNDC()
+            #latex2.SetTextSize(0.04)
+            #latex2.SetTextAlign(11)
+            #latex1.DrawLatex(0.62,0.55,'SF_{W} = %.2f'%SF_W)
+            #latex1.DrawLatex(0.62,0.50,"SF_{top} = %.2f"%SF_top)
+
+            #can.Print('./%s_nBTagFitRes_nice_%s.png'%(year, MET_string))
+            #can.Print('./%s_nBTagFitRes_nice_%s.pdf'%(year, MET_string))
+            #can.Print('./%s_nBTagFitRes_nice_%s.root'%(year, MET_string))
 
 
     results = sorted(yields_WJets_0b_postFit)
@@ -535,8 +559,13 @@ for metBin in range(len(metBins)):
     R_0H = af(WJets2D_Higgs.GetBinContent(metBin+1, 1), WJets2D_Higgs.GetBinError(metBin+1, 1))/y_inclH
     numerator = af(WJets2D_Boosted.GetBinContent(metBin+1,1)+WJets2D_Boosted.GetBinContent(metBin+1,2), 0.01) # stat uncertainty of W+jets already in R_W
     R_1H_mistag = af(WJets2D_BoostedRew.GetBinContent(metBin+1,2), WJets2D_BoostedRew.GetBinError(metBin+1,2))/numerator
-    R_0H_mistag = af(1,0.01) - R_1H_mistag 
-    W_pred[metBins[metBin]] = {'0b':W_0b, 'SF_W':SF_W, 'SF_top':SF_top, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H, '2b,1Hm':W_0b*R_W*R_1H_mistag, '2b,0Hm':W_0b*R_W*R_0H_mistag}
+    R_0H_mistag = af(1,0.01) - R_1H_mistag
+    R_H_unc = af(1.0, 0.10)
+    R_W_unc = af(1.0, 0.30)
+    W_pred[metBins[metBin]] = {'0b':W_0b, 'SF_W':SF_W, 'SF_top':SF_top, 'R_W':R_W, '0b_all':results, '2b':W_0b*R_W, '2b,1H':W_0b*R_W*R_1H, '2b,0H':W_0b*R_W*R_0H,
+        '2b,1Hm':W_0b*R_W*R_1H_mistag, '2b,0Hm':W_0b*R_W*R_0H_mistag,
+        '2b,1Hm_unc':W_0b*R_W*R_1H_mistag*R_H_unc*R_W_unc, '2b,0Hm_unc':W_0b*R_W*R_0H_mistag*R_H_unc*R_W_unc,
+    }
     
     # need to set the uncertainty for 0 to 1.8410*weight -> which weight? inclusive Fall17 W+jets sample has weight of >20 for 41.5/fb. Need to check!
     
@@ -544,11 +573,18 @@ for metBin in range(len(metBins)):
     # no delta uncertainty in here yet! 
     print "R_W:", R_W
 
+pickle.dump(W_pred, file("estimate_%s.pkl"%year, 'w'))
+
 WJetsHist_pred = ROOT.TH1F('WJetsHist_pred', '', 8,0,8)
 TTJetsHist_pred = ROOT.TH1F('TTJetsHist_pred', '', 8,0,8)
 DataHist_obs = ROOT.TH1F('Data_obs', '', 8,0,8)
 
-WJetsHist_pred.style = styles.fillStyle(ROOT.kGreen+1)
+## needed for legend
+WJetsHist_pred.SetLineColor(ROOT.kGreen+1)
+WJetsHist_pred.SetLineWidth(2)
+
+# style for plots
+WJetsHist_pred.style = styles.lineStyle(ROOT.kGreen+1, width=2)
 TTJetsHist_pred.style = styles.fillStyle(ROOT.kBlue+1)
 DataHist_obs.style = styles.errorStyle(ROOT.kBlack)
 
@@ -561,18 +597,79 @@ for i,metBin in enumerate(metBins):
     TTJetsHist_pred.SetBinError(2*i+1, TTJets2D_Higgs.GetBinError(i+1, 1))
     TTJetsHist_pred.SetBinContent(2*i+2, TTJets2D_Higgs.GetBinContent(i+1, 2))
     TTJetsHist_pred.SetBinError(2*i+2, TTJets2D_Higgs.GetBinError(i+1, 2))
-    WJetsHist_pred.SetBinContent(2*i+1, W_pred[metBin]['2b,0Hm'].central)
-    WJetsHist_pred.SetBinError(2*i+1, W_pred[metBin]['2b,0Hm'].up)
-    WJetsHist_pred.SetBinContent(2*i+2, W_pred[metBin]['2b,1Hm'].central)
-    WJetsHist_pred.SetBinError(2*i+2, W_pred[metBin]['2b,1Hm'].up)
+    WJetsHist_pred.SetBinContent(2*i+1, W_pred[metBin]['2b,0Hm_unc'].central)
+    WJetsHist_pred.SetBinError(2*i+1, W_pred[metBin]['2b,0Hm_unc'].up)
+    WJetsHist_pred.SetBinContent(2*i+2, W_pred[metBin]['2b,1Hm_unc'].central)
+    WJetsHist_pred.SetBinError(2*i+2, W_pred[metBin]['2b,1Hm_unc'].up)
     DataHist_obs.SetBinContent(i+1, Data2D_pos.GetBinContent(i+1,3)+Data2D_neg.GetBinContent(i+1,3))
+
+binLabels = ['0H','1H']*4
+
+def setBinLabels( hist ):
+    for i in range(1, hist.GetNbinsX()+1):
+        hist.GetXaxis().SetBinLabel(i, binLabels[i-1])
+
+def drawDivisions(nRegions):
+    #print len(regions)
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / nRegions
+    lines = []
+    lines2 = []
+    line = ROOT.TLine()
+#   line.SetLineColor(38)
+    line.SetLineWidth(1)
+    line.SetLineStyle(2)
+    lines  = [ (min+2*diff,  0.15, min+2*diff, 0.90) ]
+    lines += [ (min+4*diff,  0.15, min+4*diff, 0.80) ]
+    lines += [ (min+6*diff,  0.15, min+6*diff, 0.80) ]
+    return [line.DrawLineNDC(*l) for l in lines] + [tex.DrawLatex(*l) for l in []] + [tex2.DrawLatex(*l) for l in lines2]
+
+def drawLabelsRot( nRegions ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.032)
+    tex.SetTextAngle(90)
+    tex.SetTextAlign(12) # align right
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / nRegions
+    #lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
+    lines  = [(min+(1.5)*diff, 0.5, "E_{T}^{miss} 125-200 GeV")]
+    lines += [(min+(3.5)*diff, 0.5, "E_{T}^{miss} 200-300 GeV")]
+    lines += [(min+(5.5)*diff, 0.5, "E_{T}^{miss} 300-400 GeV")]
+    lines += [(min+(7.5)*diff, 0.5, "E_{T}^{miss} #geq 400 GeV")]
+    return [tex.DrawLatex(*l) for l in lines] 
+
+def getLegendRight():
+    leg = ROOT.TLegend(0.60,0.80,0.90,0.88)
+    leg.SetFillColor(ROOT.kWhite)
+    leg.SetShadowColor(ROOT.kWhite)
+    leg.SetBorderSize(0)
+    leg.SetTextSize(0.035)
+    leg.AddEntry(WJetsHist_pred, 'W+jets (pred)', 'l')
+    leg.AddEntry(boxes[0], 'Uncertainty', 'f')
+    return [leg]
+
+def drawObjects( isData=False, lumi=36. ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.05)
+    tex.SetTextAlign(11) # align right
+    lines = [
+      (0.15, 0.945, 'CMS Simulation') if not isData else (0.15, 0.945, 'CMS #bf{#it{Preliminary}}'),
+      (0.60, 0.945, '#bf{%s fb^{-1} (13 TeV)}'%lumi )
+    ]
+    return [tex.DrawLatex(*l) for l in lines]
 
 boxes = []
 ratio_boxes = []
 for ib in range(1,9):
-    val = TTJetsHist_pred.GetBinContent(ib) + WJetsHist_pred.GetBinContent(ib)
+    #val = TTJetsHist_pred.GetBinContent(ib) + WJetsHist_pred.GetBinContent(ib)
+    val = WJetsHist_pred.GetBinContent(ib)
     if val<0: continue
-    sys = math.sqrt(TTJetsHist_pred.GetBinError(ib)**2 + WJetsHist_pred.GetBinError(ib)**2)
+    #sys = math.sqrt(TTJetsHist_pred.GetBinError(ib)**2 + WJetsHist_pred.GetBinError(ib)**2)
+    sys = WJetsHist_pred.GetBinError(ib)
     if val > 0:
         sys_rel = sys/val
     else:
@@ -597,21 +694,27 @@ for ib in range(1,9):
 plot_path = './'
 
 plotting.draw(
-    Plot.fromHisto(name = 'Closure_%s'%year, histos = [[ WJetsHist_pred,TTJetsHist_pred ], [ DataHist_obs] ], texX = "p_{T}^{miss} bins", texY = "Events"),
+    #Plot.fromHisto(name = 'Closure_%s'%year, histos = [[ WJetsHist_pred,TTJetsHist_pred ], [ DataHist_obs] ], texX = "p_{T}^{miss} bins", texY = "Events"),
+    Plot.fromHisto(name = 'Closure_%s'%year, histos = [ [ WJetsHist_pred] ], texX = "", texY = "Events"),
     plot_directory = plot_path,
-    yRange = (0.0,6.5),
-    ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
+    yRange = (0.0,1.0),
+    legend = None,
+    #ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
     logX = False, logY = False, sorting = False,
-    drawObjects = boxes,
+    histModifications = [ lambda h: setBinLabels(h) ],
+    drawObjects = boxes + drawDivisions(8) + drawLabelsRot(8) + getLegendRight() + drawObjects(isData=True, lumi=lumi),
 )
 
 plotting.draw(
-    Plot.fromHisto(name = 'Closure_log_%s'%year, histos = [[ WJetsHist_pred,TTJetsHist_pred ], [ DataHist_obs] ], texX = "p_{T}^{miss} bins", texY = "Events"),
+    #Plot.fromHisto(name = 'Closure_log_%s'%year, histos = [[ WJetsHist_pred,TTJetsHist_pred ], [ DataHist_obs] ], texX = "p_{T}^{miss} bins", texY = "Events"),
+    Plot.fromHisto(name = 'Closure_log_%s'%year, histos = [ [WJetsHist_pred] ], texX = "", texY = "Events"),
     plot_directory = plot_path,
-    yRange = (0.01,90),
-    ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
+    yRange = (0.01,20),
+    legend = None,
+    #ratio = {'histos': [(1, 0)], 'texY': 'Data / pred', 'yRange':(0.1,1.9)},
     logX = False, logY = True, sorting = False,
-    drawObjects = boxes,
+    histModifications = [ lambda h: setBinLabels(h) ],
+    drawObjects = boxes + drawDivisions(8) + drawLabelsRot(8) + getLegendRight() + drawObjects(isData=True, lumi=lumi),
 )
 
 ## systematics
@@ -619,6 +722,9 @@ plotting.draw(
 selectionString_2l  = dilepSelection+"&&pass&&nvetoleps==2&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&mct>200&&mbb>90&&mbb<150&&(lep1_pdgid*lep2_pdgid<0)"
 invariantMass       = "sqrt(2*leps_pt[0]*leps_pt[1]*(cosh(leps_eta[0]-leps_eta[1])-cos(leps_phi[0]-leps_phi[1])))"
 selectionString_2l += "&&abs(%s-91.2)<5"%invariantMass
+
+selectionString_2l_loose  = dilepSelection+"&&pass&&nvetoleps==2&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&mbb>90&&mbb<150&&(lep1_pdgid*lep2_pdgid<0)"
+selectionString_2l_loose += "&&abs(%s-91.2)<5"%invariantMass
 
 Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1)")
 
@@ -653,6 +759,26 @@ data_0h = af(data_0h['val'], data_0h['sigma'])
 print "MC 1h/incl:", (mc_1h/mc_2b)
 print "MC 0h/incl:", (mc_0h/mc_2b)
 print "2l Higgs-tag double ratio:", (data_1h/data_0h)/(mc_1h/mc_0h)
+
+
+## third double ratio for higgs tagging - under devolpment
+mc_1h  = DYJets.getYieldFromDraw(selectionString_2l_loose+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==1",'weight * w_pu *'+lumi)
+mc_rew = DYJets.getYieldFromDraw(selectionString_2l_loose+"&&ngoodbtags>=2&&Sum$(ak8pfjets_pt>0)==1",'weight * w_pu *'+lumi+'*'+reweighting)
+mc_0h  = DYJets.getYieldFromDraw(selectionString_2l_loose+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==0",'weight * w_pu *'+lumi)
+
+data_1h = Data.getYieldFromDraw(selectionString_2l_loose+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==1",'(1)')
+data_0h = Data.getYieldFromDraw(selectionString_2l_loose+"&&ngoodbtags>=2&&Sum$(ak8pfjets_deepdisc_hbb>0.8)==0",'(1)')
+
+mc_1h = af(mc_1h['val'], mc_1h['sigma'])
+mc_0h = af(mc_0h['val'], mc_0h['sigma'])
+data_1h = af(data_1h['val'], data_1h['sigma'])
+data_0h = af(data_0h['val'], data_0h['sigma'])
+
+print "MC 1h/incl:", (mc_1h/mc_2b)
+print "MC 0h/incl:", (mc_0h/mc_2b)
+print "2l Higgs-tag double ratio:", (data_1h/data_0h)/(mc_1h/mc_0h)
+
+
 
 ## Closure test
 

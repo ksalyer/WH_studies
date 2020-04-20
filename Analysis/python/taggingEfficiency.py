@@ -72,10 +72,9 @@ S16_QCD = Sample.combine("S16_QCD_combined", [S16_QCD_500to700,S16_QCD_700to1000
 F17_QCD = Sample.combine("F17_QCD_combined", [F17_QCD_100to200,F17_QCD_200to300,F17_QCD_300to500,F17_QCD_500to700,F17_QCD_700to1000,F17_QCD_1000to1500,F17_QCD_1500to2000,F17_QCD_2000toInf])
 A18_QCD = Sample.combine("A18_QCD_combined", [A18_QCD_100to200,A18_QCD_200to300,A18_QCD_300to500,A18_QCD_500to700,A18_QCD_700to1000,A18_QCD_1000to1500,A18_QCD_1500to2000,A18_QCD_2000toInf])
 
-sample = F17_QCD
 
 ## Do the nanoAOD-tools stuff
-class TriggerAnalysis(Module):
+class TaggerAnalysis(Module):
     def __init__(self, btagWP=0.4941, htagWP=0.8):
         self.writeHistFile = True
         self.btagWP = btagWP
@@ -189,11 +188,29 @@ class TriggerAnalysis(Module):
         #self.eff    = ROOT.TEfficiency(self.h_pt1_passEvents, self.h_pt1_totalEvents)
         #self.addObject(self.eff)
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("--year",                  dest="year",                  default=2016, type="int",    action="store",      help="Which year?")
+(options, args) = parser.parse_args()
 
-preselection = 'Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_jetId>0&&Jet_btagDeepB>0.4941)>1'
+## select proper b-tag WP depending on year.
+if options.year == 2016:
+    btagWP = 0.6321
+    sample = S16_QCD
+elif options.year == 2017:
+    btagWP = 0.4941
+    sample = F17_QCD
+elif options.year == 2018:
+    btagWP = 0.4184
+    sample = A18_QCD
+else:
+    print "Don't know year %s"%options.year
+    btatWP = 1
+
+preselection = 'Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_jetId>0&&Jet_btagDeepB>%s)>1'%btagWP
 files = sample.files
 
-p=PostProcessor(".", files, cut=preselection,branchsel=None,modules=[TriggerAnalysis()],noOut=True,histFileName="histOut.root",histDirName="plots")
+p=PostProcessor(".", files, cut=preselection,branchsel=None,modules=[TaggerAnalysis(btagWP)],noOut=True,histFileName="histOut.root",histDirName="plots")
 
 print "Run"
 

@@ -41,6 +41,13 @@ def getIntegralAndError(hist):
 
 year = int(options.year)
 
+#if options.combined:
+#    lumi = 137.2
+#    mc[2016]      = '/home/users/dspitzba/wh_babies/babies_mc_s16v3_v33_4_2019_12_30/'
+#    data[2016]    = '/home/users/dspitzba/wh_babies/babies_v33_4_2019_12_30/'
+
+
+
 if year == 2016:
     # definitions
     mcDir   = '/home/users/dspitzba/wh_babies/babies_mc_s16v3_v33_4_2019_12_30/'
@@ -101,7 +108,7 @@ if year == 2016:
     Diboson = Sample.fromFiles('Diboson', DibosonDirs, 't')
     
     # load data, but keep SR blinded
-    Data = Sample.fromFiles('Data', glob.glob(dataDir+"*data_2016*.root"), 't')
+    Data = Sample.fromFiles('Data', glob.glob(dataDir+"*data_2016*single*.root") + glob.glob(dataDir+"*data_2016*met*.root"), 't')
     Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1) && (ngoodbtags<2||mbb<90||mbb>150)")
 
 elif year == 2017:

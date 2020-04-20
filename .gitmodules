@@ -1,0 +1,6 @@
+[submodule "plottery"]
+	path = plottery
+	url = https://github.com/aminnj/plottery.git
+[submodule "Plots/python/plottery"]
+	path = Plots/python/plottery
+	url = https://github.com/aminnj/plottery.git

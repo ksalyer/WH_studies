@@ -1,0 +1,6 @@
+__init__.py
+*.pdf
+*.root
+*.png
+*.pyc
+*.pkl

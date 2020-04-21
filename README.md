@@ -8,6 +8,7 @@ cmsenv
 git cms-init
 
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
+cd $CMSSW_BASE/src
 
 git clone https://github.com/HephyAnalysisSW/RootTools.git
 cd $CMSSW_BASE/src

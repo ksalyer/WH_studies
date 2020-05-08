@@ -172,13 +172,13 @@ if __name__ == "__main__":
     if options.customWP > 0:
         htagWP = options.customWP
 
+    # very loose preselection
     preselection = 'nFatJet>0'
     files = sample.files
     
+    # this is where the magic happens
     p = PostProcessor(".", files, cut=preselection, branchsel=None, modules=[TaggerAnalysis(btagWP, htagWP, options.tagger)], noOut=True, histFileName="histOut.root", histDirName="plots")
-    
-    print "Run"
-    
+    print "Starting the processor"
     p.run()
     
     # get the root histograms from the processor

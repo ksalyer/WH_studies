@@ -12,16 +12,18 @@ wh_samples = {
     "data_2018A_singlemu" : "/SingleMuon/Run2018A-17Sep2018-v2/MINIAOD",
     "data_2018B_singlemu" : "/SingleMuon/Run2018B-17Sep2018-v1/MINIAOD",
     "data_2018C_singlemu" : "/SingleMuon/Run2018C-17Sep2018-v1/MINIAOD",
-    "data_2018D_singlemu" : "/SingleMuon/Run2018D-PromptReco-v2/MINIAOD",
+    #"data_2018D_singlemu" : "/SingleMuon/Run2018D-Nano25Oct2019-v1/NANOAOD",
+    "data_2018D_singlemu" : "/SingleMuon/Run2018D-22Jan2019-v2/MINIAOD",
 
     "data_2018A_egamma" : "/EGamma/Run2018A-17Sep2018-v2/MINIAOD",
     "data_2018B_egamma" : "/EGamma/Run2018B-17Sep2018-v1/MINIAOD",
     "data_2018C_egamma" : "/EGamma/Run2018C-17Sep2018-v1/MINIAOD",
-    "data_2018D_egamma" : "/EGamma/Run2018D-PromptReco-v2/MINIAOD",
+    "data_2018D_egamma" : "/EGamma/Run2018D-22Jan2019-v2/MINIAOD",
 
     "data_2018A_muoneg" : "/MuonEG/Run2018A-17Sep2018-v1/MINIAOD",
     "data_2018B_muoneg" : "/MuonEG/Run2018B-17Sep2018-v1/MINIAOD",
     "data_2018C_muoneg" : "/MuonEG/Run2018C-17Sep2018-v1/MINIAOD",
+    #"data_2018D_muoneg" : "/MuonEG/Run2018D-Nano25Oct2019_ver2-v1/NANOAOD",
     "data_2018D_muoneg" : "/MuonEG/Run2018D-PromptReco-v2/MINIAOD",
 
     # "data_2018A_jetht"  : "/JetHT/Run2018A-17Sep2018-v1/MINIAOD",

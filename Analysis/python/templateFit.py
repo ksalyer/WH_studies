@@ -56,18 +56,18 @@ if year == 2016:
     
     #FIXME split off WX part because of low stats and negative weights
     # w+jets
-    WJetsDirs =   glob.glob(mcDir+'slim_W*JetsToLNu_s16v3*.root') \
+    WJetsDirs_2016 =   glob.glob(mcDir+'slim_W*JetsToLNu_s16v3*.root') \
                 + glob.glob(mcDir+"slim*W*Jets_NuPt200_s16v*.root") \
 
-    WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
+    WJets = Sample.fromFiles('WJets', WJetsDirs_2016, "t")
     WJets.setSelectionString("stitch")
 
     # WX
-    WXDirs  = glob.glob(mcDir+'slim*WW*.root') \
+    WXDirs_2016  = glob.glob(mcDir+'slim*WW*.root') \
             + glob.glob(mcDir+'slim*WZ*.root') \
             + glob.glob(mcDir+'slim*ZZ*.root') \
 
-    WX = Sample.fromFiles('WX', WXDirs, "t")
+    WX = Sample.fromFiles('WX', WXDirs_2016, "t")
 
     # DY for 2l - take all MC at once    
     DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_M50_s16v3*.root')\
@@ -86,7 +86,7 @@ if year == 2016:
     DYJets.setSelectionString("stitch")
 
     # tt/t
-    TTJetsDirs =  glob.glob(mcDir+'slim*TTJets_1lep_top_s16v3*.root') \
+    TTJetsDirs_2016 =  glob.glob(mcDir+'slim*TTJets_1lep_top_s16v3*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_tbar_s16v3*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_*met150*.root') \
                 + glob.glob(mcDir+'slim*TTJets_2lep_s16v3*.root')\
@@ -95,7 +95,7 @@ if year == 2016:
                 + glob.glob(mcDir+'slim*TTW*.root') \
                 + glob.glob(mcDir+'slim*TTZ*.root')
     
-    TTJets = Sample.fromFiles('TTJets', TTJetsDirs, 't')
+    TTJets = Sample.fromFiles('TTJets', TTJetsDirs_2016, 't')
     TTJets.setSelectionString("stitch")
     
     # diboson + ttV. could also put ttV to tt/t
@@ -118,18 +118,18 @@ elif year == 2017:
     lumi = '41.5'
     
     # w+jets
-    WJetsDirs   = glob.glob(mcDir+"*slim_W*JetsToLNu_f17v2*")\
+    WJetsDirs_2017   = glob.glob(mcDir+"*slim_W*JetsToLNu_f17v2*")\
                 + glob.glob(mcDir+"slim*W*Jets_NuPt200_f17v*.root")\
 
-    WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
+    WJets = Sample.fromFiles('WJets', WJetsDirs_2017, "t")
     WJets.setSelectionString("stitch")
 
     # WX
-    WXDirs  = glob.glob(mcDir+'slim*WW*.root') \
+    WXDirs_2017  = glob.glob(mcDir+'slim*WW*.root') \
             + glob.glob(mcDir+'slim*WZ*.root') \
             + glob.glob(mcDir+'slim*ZZ*.root') \
 
-    WX = Sample.fromFiles('WX', WXDirs, "t")
+    WX = Sample.fromFiles('WX', WXDirs_2017, "t")
 
     # DY for 2l - take all MC at once    
     DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_M50_f17v2*.root')\
@@ -148,7 +148,7 @@ elif year == 2017:
     DYJets.setSelectionString("stitch")
     
     # tt/t
-    TTJetsDirs =  glob.glob(mcDir+'slim*TTJets_1lep_top_f17v2*.root') \
+    TTJetsDirs_2017 =  glob.glob(mcDir+'slim*TTJets_1lep_top_f17v2*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_tbar_f17v2*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_*met150*.root') \
                 + glob.glob(mcDir+'slim*TTJets_2lep_f17v2*.root')\
@@ -157,7 +157,7 @@ elif year == 2017:
                 + glob.glob(mcDir+'slim*TTW*.root') \
                 + glob.glob(mcDir+'slim*TTZ*.root')
     
-    TTJets = Sample.fromFiles('TTJets', TTJetsDirs, 't')
+    TTJets = Sample.fromFiles('TTJets', TTJetsDirs_2017, 't')
     TTJets.setSelectionString("stitch")
     
     # diboson + ttV. could also put ttV to tt/t
@@ -177,19 +177,19 @@ elif year == 2018:
     dataDir = '/home/users/dspitzba/wh_babies/babies_Run2018_v33_4_2019_12_30/'
     lumi = '60.0'
     
-    WJetsDirs   = glob.glob(mcDir+'slim*W*JetsToLNu_a18v1*.root') \
+    WJetsDirs_2018   = glob.glob(mcDir+'slim*W*JetsToLNu_a18v1*.root') \
                 + glob.glob(mcDir+'slim*W*Jets_NuPt200_a18v*.root')
 
     # w+jets
-    WJets = Sample.fromFiles('WJets', WJetsDirs, "t")
+    WJets = Sample.fromFiles('WJets', WJetsDirs_2018, "t")
     WJets.setSelectionString("stitch")
 
     # WX
-    WXDirs  = glob.glob(mcDir+'slim*WW*.root') \
+    WXDirs_2018  = glob.glob(mcDir+'slim*WW*.root') \
             + glob.glob(mcDir+'slim*WZ*.root') \
             + glob.glob(mcDir+'slim*ZZ*.root') \
 
-    WX = Sample.fromFiles('WX', WXDirs, "t")
+    WX = Sample.fromFiles('WX', WXDirs_2018, "t")
 
     # DY for 2l - take all MC at once    
     DYJetsDirs  = glob.glob(mcDir+'slim_DYJetsToLL_madgraph_*.root')\
@@ -208,7 +208,7 @@ elif year == 2018:
     DYJets.setSelectionString("stitch")
     
     # tt/t
-    TTJetsDirs =  glob.glob(mcDir+'slim*TTJets_1lep_top_a18v1*.root') \
+    TTJetsDirs_2018 =  glob.glob(mcDir+'slim*TTJets_1lep_top_a18v1*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_tbar_a18v1*.root') \
                 + glob.glob(mcDir+'slim*TTJets_1lep_*met150*.root') \
                 + glob.glob(mcDir+'slim*TTJets_2lep_a18v1*.root')\
@@ -217,7 +217,7 @@ elif year == 2018:
                 + glob.glob(mcDir+'slim*TTW*.root') \
                 + glob.glob(mcDir+'slim*TTZ*.root')
     
-    TTJets = Sample.fromFiles('TTJets', TTJetsDirs, 't')
+    TTJets = Sample.fromFiles('TTJets', TTJetsDirs_2018, 't')
     TTJets.setSelectionString("stitch")
     
     # diboson + ttV. could also put ttV to tt/t
@@ -228,6 +228,24 @@ elif year == 2018:
     Diboson = Sample.fromFiles('Diboson', DibosonDirs, 't')
     
     # load data, but keep SR blinded
+    Data = Sample.fromFiles('Data', glob.glob(dataDir+"slim*data_2018*.root"), 't')
+    Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1) && (ngoodbtags<2||mbb<90||mbb>150)")
+
+elif year == 'combined'
+    dataDir_16 = '/home/users/dspitzba/wh_babies/babies_v33_4_2019_12_30/'
+    dataDir_17 = '/home/users/dspitzba/wh_babies/babies_Run2017_v33_4_2019_12_30/'
+    dataDir_18 = '/home/users/dspitzba/wh_babies/babies_Run2018_v33_4_2019_12_30/'
+
+    lumi = '137'
+
+    WJets = Sample.fromFiles('WJets', WJetsDirs_2016 + WJetsDirs_2017 + WJetsDirs_2018, "t")
+    WJets.setSelectionString("stitch")
+
+    WX = Sample.fromFiles('WX', WXDirs_2016 + WXDirs_2017 + WXDirs_2018, "t")
+
+    TTJets = Sample.fromFiles('TTJets', TTJetsDirs_2016 + TTJetsDirs_2017 + TTJetsDirs_2018, 't')
+    TTJets.setSelectionString("stitch")
+
     Data = Sample.fromFiles('Data', glob.glob(dataDir+"slim*data_2018*.root"), 't')
     Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1) && (ngoodbtags<2||mbb<90||mbb>150)")
 

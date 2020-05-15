@@ -40,9 +40,11 @@ merge_tasks = []
 
 
 #wh_samples = {'TTWJetsToLNu_a18v1':wh_samples['TTWJetsToLNu_a18v1']}
-wh_samples = {'TTWJetsToLNu_f17v2':wh_samples['TTWJetsToLNu_f17v2']}
+#wh_samples = {'TTWJetsToLNu_f17v2':wh_samples['TTWJetsToLNu_f17v2']}
 #wh_samples = {'data_2018B_singlemu':wh_samples['data_2018B_singlemu']}
 
+#wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if 'data_2017' in x}
+wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if 'f17v2' in x}
 
 incomplete_samples = []
 missing_samples = []
@@ -84,7 +86,7 @@ for s in wh_samples.keys():
         print "### WARNING ###"
         print "    |---> Number of events in NanoAOD: %s"%sample.get_nevents()
         print "    |---> Number of events in MiniAOD: %s"%sample_mAOD.get_nevents()
-        
+        print "             |---> %s percent of events missing in NanoAOD"%(float(sample_mAOD.get_nevents()-sample.get_nevents())/sample_mAOD.get_nevents()*100)
         incomplete_samples.append(nanoAOD)
 
 

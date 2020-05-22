@@ -155,7 +155,7 @@ if __name__ == "__main__":
     ## select proper b-tag WP depending on year.
     if options.year == 2016:
         btagWP = 0.6321
-        htagWP = 0.8 # replace!
+        htagWP = 0.8945 # replace!
         sample = S16
     elif options.year == 2017:
         btagWP = 0.4941
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         sample = WH_F17_FullSim if not options.fastSim else WH_F17_FastSim
     elif options.year == 2018:
         btagWP = 0.4184
-        htagWP = 0.8 # replace!
+        htagWP = 0.8365 # replace!
         sample = A18
     else:
         print "Don't know year %s"%options.year

@@ -6,17 +6,21 @@ from RootTools.core.standard import *
 ### 2016
 ## FullSim samples
 #fullSim      = Sample.fromDirectory("FullSim",    "/hadoop/cms/store/user/dspitzba/nanoAOD/SMS_TChiWH_WToLNu_HToBB_mChargino850_mLSP1_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/") # original file
-fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/*.root'))
+#fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/*.root'))
+fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8__RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7-v1/*.root'))
 
 fullSim.reduceFiles(to=2)
 
 ## FastSim inclusive samples (not used here)
 #fastSim      = Sample.fromFiles("FastSim",    ["ttdilep_JEC.root"])
-fastSim      = Sample.fromFiles("FastSim",    ["/home/users/dspitzba/WH/CMSSW_10_2_9/src/ttdilep_JEC.root"])
+#fastSim      = Sample.fromFiles("FastSim",    ["/hadoop/cms/store/user/dspitzba/WH_studies/ttdilep_JEC.root"])
+fastSim      = Sample.fromFiles("FastSim",    glob.glob('/home/users/dspitzba/WH/CMSSW_10_2_9/src/WH_studies/postProcessing/*Skim.root'))
 
-fullSim.setSelectionString("Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_ecalBadCalibFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilterV2")
+#fullSim.setSelectionString("Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_ecalBadCalibFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilterV2")
+fullSim.setSelectionString("Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter")
 
-fastSim.setSelectionString("Flag_goodVertices&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_ecalBadCalibFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter")
+#fastSim.setSelectionString("Flag_goodVertices&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_ecalBadCalibFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter")
+fastSim.setSelectionString("Flag_goodVertices&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter")
 
 '''
 Select events with one higgs tag (medium WP)
@@ -39,8 +43,28 @@ h_profile_response_b_fast = fastSim.get1DHistoFromDraw(variableString="Jet_pt_no
 h_profile_response_ISR_full = fullSim.get1DHistoFromDraw(variableString="Jet_pt/GenJet_pt[Jet_genJetIdx]:Jet_pt", binning=[30,50,70,100,130, 170, 200, 250, 300, 400, 600, 1000], binningIsExplicit=True, isProfile=True, selectionString='Jet_pt>0&&abs(Jet_eta)<2.4&&Jet_jetId&&!(Jet_hadronFlavour==5)&&Jet_btagDeepB<0.4941&&Jet_genJetIdx>-1')
 h_profile_response_ISR_fast = fastSim.get1DHistoFromDraw(variableString="Jet_pt_nom/GenJet_pt[Jet_genJetIdx]:Jet_pt_nom", binning=[30,50,70,100,130,170, 200, 250, 300, 400, 600, 1000], binningIsExplicit=True, isProfile=True, selectionString='Jet_pt>0&&abs(Jet_eta)<2.4&&Jet_jetId&&!(Jet_hadronFlavour==5)&&Jet_btagDeepB<0.4941&&Jet_genJetIdx>-1')
 
-## plots of MET Significance, MT2ll and MT2blbl
-if False:
+h_MET_reco    = fastSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+h_MET_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+h_MET_full    = fullSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+
+h_MET_incl_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+h_MET_incl_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+h_MET_incl_full    = fullSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+
+h_MET_coarse_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+h_MET_coarse_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+h_MET_coarse_full    = fullSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+
+h_RawMET_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+h_RawMET_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+
+h_GenMET_reco    = fastSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+h_GenMET_full    = fullSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+
+h_RawMET_unweighted_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
+h_RawMET_unweighted_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
+
+if True:
     h_MSD_reco    = fastSim.get1DHistoFromDraw('FatJet_msoftdrop[0]',       [20,0,200], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
     h_MSD_jec     = fastSim.get1DHistoFromDraw('FatJet_msoftdrop_nom[0]',   [20,0,200], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
     h_MSD_full    = fullSim.get1DHistoFromDraw('FatJet_msoftdrop[0]',       [20,0,200], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
@@ -56,27 +80,6 @@ if False:
     #h_FatJet_pt_noB_reco        = fastSim.get1DHistoFromDraw('FatJet_pt',       [20,150,1150], weightString='genWeight', selectionString='SubJet_btagDeepB[FatJet_subJetIdx1]<0.1522&&SubJet_btagDeepB[FatJet_subJetIdx2]<0.1522', addOverFlowBin='upper')
     #h_FatJet_pt_noB_jec         = fastSim.get1DHistoFromDraw('FatJet_pt_nom',   [20,150,1150], weightString='genWeight', selectionString='SubJet_btagDeepB[FatJet_subJetIdx1]<0.1522&&SubJet_btagDeepB[FatJet_subJetIdx2]<0.1522', addOverFlowBin='upper')
     #h_FatJet_pt_noB_full        = fullSim.get1DHistoFromDraw('FatJet_pt',       [20,150,1150], weightString='genWeight', selectionString='SubJet_btagDeepB[FatJet_subJetIdx1]<0.1522&&SubJet_btagDeepB[FatJet_subJetIdx2]<0.1522', addOverFlowBin='upper')
-    
-    h_MET_reco    = fastSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    h_MET_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    h_MET_full    = fullSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    
-    h_MET_incl_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-    h_MET_incl_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-    h_MET_incl_full    = fullSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-    
-    h_MET_coarse_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-    h_MET_coarse_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-    h_MET_coarse_full    = fullSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-    
-    h_RawMET_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    h_RawMET_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    
-    h_GenMET_reco    = fastSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    h_GenMET_full    = fullSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-    
-    h_RawMET_unweighted_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
-    h_RawMET_unweighted_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
     
     h_nJet_reco    = fastSim.get1DHistoFromDraw('Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_jetId>0)',  [8,-0.5,7.5], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
     h_nJet_full    = fullSim.get1DHistoFromDraw('Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_jetId>0)',  [8,-0.5,7.5], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
@@ -129,7 +132,43 @@ h_profile_response_ISR_full.legendText = 'FullSim'
 h_profile_response_ISR_fast.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
 h_profile_response_ISR_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
 
-if False:
+h_MET_reco.legendText = 'FastSim'
+h_MET_jec.legendText  = 'FastSim, JEC reapplied'
+h_MET_full.legendText = 'FullSim'
+h_MET_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+h_MET_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
+h_MET_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+h_MET_incl_reco.legendText = 'FastSim'
+h_MET_incl_jec.legendText  = 'FastSim, JEC reapplied'
+h_MET_incl_full.legendText = 'FullSim'
+h_MET_incl_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+h_MET_incl_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
+h_MET_incl_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+h_MET_coarse_reco.legendText = 'FastSim'
+h_MET_coarse_jec.legendText  = 'FastSim, JEC reapplied'
+h_MET_coarse_full.legendText = 'FullSim'
+h_MET_coarse_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+h_MET_coarse_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
+h_MET_coarse_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+h_RawMET_reco.legendText = 'FastSim'
+h_RawMET_full.legendText = 'FullSim'
+h_RawMET_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+h_RawMET_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+h_GenMET_reco.legendText = 'FastSim'
+h_GenMET_full.legendText = 'FullSim'
+h_GenMET_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+h_GenMET_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+h_RawMET_unweighted_reco.legendText = 'FastSim'
+h_RawMET_unweighted_full.legendText = 'FullSim'
+h_RawMET_unweighted_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+h_RawMET_unweighted_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+if True:
     h_MSD_reco.legendText = 'FastSim'
     h_MSD_jec.legendText  = 'FastSim, JEC reapplied'
     h_MSD_full.legendText = 'FullSim'
@@ -150,6 +189,11 @@ if False:
     h_FatJet_pt_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
     h_FatJet_pt_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
     h_FatJet_pt_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
+
+    h_nJet_reco.legendText = 'FastSim'
+    h_nJet_full.legendText = 'FullSim'
+    h_nJet_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
+    h_nJet_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
     
     #h_FatJet_pt_noB_reco.legendText = 'FastSim'
     #h_FatJet_pt_noB_jec.legendText  = 'FastSim, JEC reapplied'
@@ -157,47 +201,6 @@ if False:
     #h_FatJet_pt_noB_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
     #h_FatJet_pt_noB_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
     #h_FatJet_pt_noB_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_MET_reco.legendText = 'FastSim'
-    h_MET_jec.legendText  = 'FastSim, JEC reapplied'
-    h_MET_full.legendText = 'FullSim'
-    h_MET_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_MET_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
-    h_MET_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_MET_incl_reco.legendText = 'FastSim'
-    h_MET_incl_jec.legendText  = 'FastSim, JEC reapplied'
-    h_MET_incl_full.legendText = 'FullSim'
-    h_MET_incl_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_MET_incl_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
-    h_MET_incl_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_MET_coarse_reco.legendText = 'FastSim'
-    h_MET_coarse_jec.legendText  = 'FastSim, JEC reapplied'
-    h_MET_coarse_full.legendText = 'FullSim'
-    h_MET_coarse_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_MET_coarse_jec.style       = styles.lineStyle(ROOT.kRed+1,   width=2, errors=True)
-    h_MET_coarse_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_RawMET_reco.legendText = 'FastSim'
-    h_RawMET_full.legendText = 'FullSim'
-    h_RawMET_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_RawMET_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_GenMET_reco.legendText = 'FastSim'
-    h_GenMET_full.legendText = 'FullSim'
-    h_GenMET_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_GenMET_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_nJet_reco.legendText = 'FastSim'
-    h_nJet_full.legendText = 'FullSim'
-    h_nJet_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_nJet_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
-    
-    h_RawMET_unweighted_reco.legendText = 'FastSim'
-    h_RawMET_unweighted_full.legendText = 'FullSim'
-    h_RawMET_unweighted_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
-    h_RawMET_unweighted_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
     
     h_top_pt_reco.legendText = 'FastSim'
     h_top_pt_full.legendText = 'FullSim'
@@ -250,7 +253,7 @@ if False:
     h_ele_pt_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
     
 
-plot_path = './FatJet_FastFull_top/'
+plot_path = './FatJet_FastFull_top_2016/'
 
 plotting.draw(
     Plot.fromHisto(name = 'JEC_AK8', histos = [ [h_profile_JEC_fast], [h_profile_JEC_full] ], texX = "p_{T} (AK8) (GeV)", texY = "jet energy correction"),
@@ -278,7 +281,55 @@ plotting.draw(
     ratio = {'histos': [(0, 1)], 'texY': 'x / FullSim'},
 )
 
-if False:
+plotting.draw(
+    Plot.fromHisto(name = 'MET_pt', histos = [ [h_MET_reco], [h_MET_jec], [h_MET_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
+    plot_directory = plot_path,
+    logX = False, logY = True, sorting = False,
+    scaling = {1:0, 2:0},
+    ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
+)
+
+plotting.draw(
+    Plot.fromHisto(name = 'MET_pt_incl', histos = [ [h_MET_incl_reco], [h_MET_incl_jec], [h_MET_incl_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
+    plot_directory = plot_path,
+    logX = False, logY = True, sorting = False,
+    scaling = {1:0, 2:0},
+    ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
+)
+
+plotting.draw(
+    Plot.fromHisto(name = 'MET_pt_coarse', histos = [ [h_MET_coarse_reco], [h_MET_coarse_jec], [h_MET_coarse_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
+    plot_directory = plot_path,
+    logX = False, logY = True, sorting = False,
+    scaling = {1:0, 2:0},
+    ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
+)
+
+plotting.draw(
+    Plot.fromHisto(name = 'RawMET_pt', histos = [ [h_RawMET_reco], [h_RawMET_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
+    plot_directory = plot_path,
+    logX = False, logY = True, sorting = False,
+    scaling = {1:0},
+    ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
+)
+
+plotting.draw(
+    Plot.fromHisto(name = 'GenMET_pt', histos = [ [h_GenMET_reco], [h_GenMET_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
+    plot_directory = plot_path,
+    logX = False, logY = True, sorting = False,
+    scaling = {1:0},
+    ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
+)
+    
+plotting.draw(
+    Plot.fromHisto(name = 'RawMET_pt_unweighted', histos = [ [h_RawMET_unweighted_reco], [h_RawMET_unweighted_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
+    plot_directory = plot_path,
+    logX = False, logY = True, sorting = False,
+    scaling = {1:0},
+    ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
+)
+
+if True:
     plotting.draw(
         Plot.fromHisto(name = 'mass', histos = [ [h_mass_reco], [h_mass_jec], [h_mass_full] ], texX = "M (GeV)", texY = "a.u."),
         plot_directory = plot_path,
@@ -310,57 +361,6 @@ if False:
     #    scaling = {1:0, 2:0},
     #    ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
     #)
-    
-    
-    
-    plotting.draw(
-        Plot.fromHisto(name = 'MET_pt', histos = [ [h_MET_reco], [h_MET_jec], [h_MET_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
-        plot_directory = plot_path,
-        logX = False, logY = True, sorting = False,
-        scaling = {1:0, 2:0},
-        ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
-    )
-    
-    plotting.draw(
-        Plot.fromHisto(name = 'MET_pt_incl', histos = [ [h_MET_incl_reco], [h_MET_incl_jec], [h_MET_incl_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
-        plot_directory = plot_path,
-        logX = False, logY = True, sorting = False,
-        scaling = {1:0, 2:0},
-        ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
-    )
-    
-    plotting.draw(
-        Plot.fromHisto(name = 'MET_pt_coarse', histos = [ [h_MET_coarse_reco], [h_MET_coarse_jec], [h_MET_coarse_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
-        plot_directory = plot_path,
-        logX = False, logY = True, sorting = False,
-        scaling = {1:0, 2:0},
-        ratio = {'histos': [(0,2), (1,2)], 'texY': 'x / FullSim'},
-    )
-    
-    plotting.draw(
-        Plot.fromHisto(name = 'RawMET_pt', histos = [ [h_RawMET_reco], [h_RawMET_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
-        plot_directory = plot_path,
-        logX = False, logY = True, sorting = False,
-        scaling = {1:0},
-        ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
-    )
-    
-    plotting.draw(
-        Plot.fromHisto(name = 'GenMET_pt', histos = [ [h_GenMET_reco], [h_GenMET_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
-        plot_directory = plot_path,
-        logX = False, logY = True, sorting = False,
-        scaling = {1:0},
-        ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
-    )
-    
-    
-    plotting.draw(
-        Plot.fromHisto(name = 'RawMET_pt_unweighted', histos = [ [h_RawMET_unweighted_reco], [h_RawMET_unweighted_full] ], texX = "p_{T}^{miss} (GeV)", texY = "a.u."),
-        plot_directory = plot_path,
-        logX = False, logY = True, sorting = False,
-        scaling = {1:0},
-        ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
-    )
     
     plotting.draw(
         Plot.fromHisto(name = 'nJet', histos = [ [h_nJet_reco], [h_nJet_full] ], texX = "N_{jet}", texY = "a.u."),

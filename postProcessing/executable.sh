@@ -61,6 +61,16 @@ OUTFILE=$(python -c "print('$INPUTFILENAMES'.split('/')[-1].split('.root')[0]+'_
 
 echo $OUTFILE
 
+echo 'trying edmDumpEventContent'
+
+edmDumpEventContent root://cms-xrd-global.cern.ch/$INPUTFILENAMES
+
+echo 'checking proxy'
+
+voms-proxy-info
+
+echo 'starting post processing'
+
 python << EOL
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor   import PostProcessor
@@ -69,21 +79,32 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop       import M
 
 # for applying the latest JECs
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2       import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.WH.higgsTagging       import *
 
-year = '$YEAR'
-isData = ( '$ISDATA' == 'isData' )
+import os
+
+year = '%s'%os.path.expandvars("$YEAR")
+isData = int( os.path.expandvars('$ISDATA') )
+
+print isData
 
 
 jetmet = createJMECorrector(isMC=(not isData), dataYear=year, jesUncert="Total", isFastSim=False, jetType = "AK8PFPuppi", applySmearing = False)
 
 modules = [\
     # reapply JECs
-    jetmet()
+    jetmet(),
+    higgsTagging( int(year), isData )
     ]
 
-p = PostProcessor('./', ["$INPUTFILENAMES"], cut='(1)', modules=modules,\
-    branchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop_in.txt',\
-    outputbranchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop.txt',\
+inFile = os.path.expandvars("root://cms-xrd-global.cern.ch/$INPUTFILENAMES")
+
+print "This is the input file:"
+print inFile
+
+p = PostProcessor('./', [inFile], cut='(1)', modules=modules,\
+    branchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop.txt',\
+    outputbranchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop_out.txt',\
     prefetch=True)
 
 p.run()
@@ -132,6 +153,13 @@ EOL
 echo -e "\n--- end running ---\n" #                             <----- section division
 
 # Copy back the output file
+##mkdir -p ${OUTPUTDIR}
+#echo cp ${OUTPUTNAME}_${IFILE}.root ${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
+#cp ${OUTPUTNAME}_${IFILE}.root ${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
+#if [ ! -z $EXTRAOUT ]; then
+#    echo cp ${EXTRAOUT}_${IFILE}.root ${OUTPUTDIR}/${EXTRAOUT}/${EXTRAOUT}_${IFILE}.root
+#    cp ${EXTRAOUT}_${IFILE}.root ${OUTPUTDIR}/${EXTRAOUT}/${EXTRAOUT}_${IFILE}.root
+#fi
 
 if [[ $(hostname) == "uaf"* ]]; then
     mkdir -p ${OUTPUTDIR}
@@ -153,5 +181,3 @@ fi
 echo -e "\n--- cleaning up ---\n" #                             <----- section division
 cd ../../
 rm -r $CMSSW_VERSION/
-
-

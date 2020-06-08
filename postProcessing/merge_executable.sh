@@ -96,6 +96,14 @@ echo -e "\n--- end running ---\n" #                             <----- section d
 
 # Copy back the output file
 
+#echo cp ${OUTPUTNAME}_${IFILE}.root ${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
+#cp ${OUTPUTNAME}_${IFILE}.root ${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
+#if [ ! -z $EXTRAOUT ]; then
+#    echo cp ${EXTRAOUT}_${IFILE}.root ${OUTPUTDIR}/${EXTRAOUT}/${EXTRAOUT}_${IFILE}.root
+#    cp ${EXTRAOUT}_${IFILE}.root ${OUTPUTDIR}/${EXTRAOUT}/${EXTRAOUT}_${IFILE}.root
+#fi
+
+
 if [[ $(hostname) == "uaf"* ]]; then
     mkdir -p ${OUTPUTDIR}
     echo cp ${OUTPUTNAME}_${IFILE}.root ${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
@@ -105,7 +113,7 @@ if [[ $(hostname) == "uaf"* ]]; then
         cp ${EXTRAOUT}_${IFILE}.root ${OUTPUTDIR}/${EXTRAOUT}/${EXTRAOUT}_${IFILE}.root
     fi
 else
-    export LD_PRELOAD=/usr/lib64/gfal2-plugins//libgfal_plugin_xrootd.so # needed in cmssw versions later than 9_3_X
+   export LD_PRELOAD=/usr/lib64/gfal2-plugins//libgfal_plugin_xrootd.so # needed in cmssw versions later than 9_3_X
     gfal-copy -p -f -t 4200 --verbose file://`pwd`/${OUTPUTNAME}_${IFILE}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root --checksum ADLER32
     if [ ! -z $EXTRAOUT ]; then
         gfal-copy -p -f -t 4200 --verbose file://`pwd`/${EXTRAOUT}_${IFILE}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${EXTRAOUT}/${EXTRAOUT}_${IFILE}.root --checksum ADLER32

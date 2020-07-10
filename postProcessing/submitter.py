@@ -49,12 +49,12 @@ merge_tasks = []
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('f17v2' in x or 'data_2017' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if not ('data' in x)}
 #wh_samples = {'data_2017B_met': wh_samples['data_2017B_met']}
-wh_samples = {'data_2018D_singlemu': wh_samples['data_2018D_singlemu']}
+wh_samples = {'WWToLNuQQ_f17v2': wh_samples['WWToLNuQQ_f17v2']}
 
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('WplusH_HToBB_WToLNu' in x or 'WminusH_HToBB_WToLNu' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if 'JetsToLNu_a18v1' in x}
 
-dryRun = True
+dryRun = False
 
 incomplete_samples = []
 missing_samples = []
@@ -133,7 +133,7 @@ for s in wh_samples.keys():
 
     print "Found year:",year
 
-    tag = 'WHv1p1'
+    tag = 'WHv1p3'
     #raise NotImplementedError
     isData = 1 if isData else 0
 

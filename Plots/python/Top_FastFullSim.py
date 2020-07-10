@@ -6,15 +6,15 @@ from RootTools.core.standard import *
 ### 2016
 ## FullSim samples
 #fullSim      = Sample.fromDirectory("FullSim",    "/hadoop/cms/store/user/dspitzba/nanoAOD/SMS_TChiWH_WToLNu_HToBB_mChargino850_mLSP1_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/") # original file
-#fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/*.root'))
-fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8__RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7-v1/*.root'))
+fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAODv6-PU2017_12Apr2018_Nano25Oct2019_102X_mc2017_realistic_v7-v1/*.root'))
+#fullSim      = Sample.fromFiles("FullSim",    glob.glob('/hadoop/cms/store/user/dspitzba/nanoAOD/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8__RunIISummer16NanoAODv6-PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7-v1/*.root'))
 
 fullSim.reduceFiles(to=2)
 
 ## FastSim inclusive samples (not used here)
 #fastSim      = Sample.fromFiles("FastSim",    ["ttdilep_JEC.root"])
-#fastSim      = Sample.fromFiles("FastSim",    ["/hadoop/cms/store/user/dspitzba/WH_studies/ttdilep_JEC.root"])
-fastSim      = Sample.fromFiles("FastSim",    glob.glob('/home/users/dspitzba/WH/CMSSW_10_2_9/src/WH_studies/postProcessing/*Skim.root'))
+fastSim      = Sample.fromFiles("FastSim",    ["/hadoop/cms/store/user/dspitzba/WH_studies/ttdilep_JEC.root"])
+#fastSim      = Sample.fromFiles("FastSim",    glob.glob('/home/users/dspitzba/WH/CMSSW_10_2_9/src/WH_studies/postProcessing/*Skim.root'))
 
 #fullSim.setSelectionString("Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_ecalBadCalibFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilterV2")
 fullSim.setSelectionString("Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter")
@@ -43,28 +43,30 @@ h_profile_response_b_fast = fastSim.get1DHistoFromDraw(variableString="Jet_pt_no
 h_profile_response_ISR_full = fullSim.get1DHistoFromDraw(variableString="Jet_pt/GenJet_pt[Jet_genJetIdx]:Jet_pt", binning=[30,50,70,100,130, 170, 200, 250, 300, 400, 600, 1000], binningIsExplicit=True, isProfile=True, selectionString='Jet_pt>0&&abs(Jet_eta)<2.4&&Jet_jetId&&!(Jet_hadronFlavour==5)&&Jet_btagDeepB<0.4941&&Jet_genJetIdx>-1')
 h_profile_response_ISR_fast = fastSim.get1DHistoFromDraw(variableString="Jet_pt_nom/GenJet_pt[Jet_genJetIdx]:Jet_pt_nom", binning=[30,50,70,100,130,170, 200, 250, 300, 400, 600, 1000], binningIsExplicit=True, isProfile=True, selectionString='Jet_pt>0&&abs(Jet_eta)<2.4&&Jet_jetId&&!(Jet_hadronFlavour==5)&&Jet_btagDeepB<0.4941&&Jet_genJetIdx>-1')
 
-h_MET_reco    = fastSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-h_MET_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-h_MET_full    = fullSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-
-h_MET_incl_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-h_MET_incl_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-h_MET_incl_full    = fullSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-
-h_MET_coarse_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-h_MET_coarse_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-h_MET_coarse_full    = fullSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
-
-h_RawMET_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-h_RawMET_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-
-h_GenMET_reco    = fastSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-h_GenMET_full    = fullSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
-
-h_RawMET_unweighted_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
-h_RawMET_unweighted_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
-
 if True:
+
+    h_MET_reco    = fastSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    h_MET_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    h_MET_full    = fullSim.get1DHistoFromDraw('MET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    
+    h_MET_incl_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+    h_MET_incl_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+    h_MET_incl_full    = fullSim.get1DHistoFromDraw('MET_pt',       [25,0,1000], weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+    
+    h_MET_coarse_reco    = fastSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+    h_MET_coarse_jec     = fastSim.get1DHistoFromDraw('MET_pt_nom',   [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+    h_MET_coarse_full    = fullSim.get1DHistoFromDraw('MET_pt',       [0,125,200,300,400,600], binningIsExplicit=True, weightString='genWeight', selectionString='(1)', addOverFlowBin='upper')
+    
+    h_RawMET_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    h_RawMET_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    
+    h_GenMET_reco    = fastSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    h_GenMET_full    = fullSim.get1DHistoFromDraw('GenMET_pt',  [25,0,1000], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
+    
+    h_RawMET_unweighted_reco    = fastSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
+    h_RawMET_unweighted_full    = fullSim.get1DHistoFromDraw('RawMET_pt',  [25,0,1000], weightString='(1)', selectionString=presel, addOverFlowBin='upper')
+
+if False:
     h_MSD_reco    = fastSim.get1DHistoFromDraw('FatJet_msoftdrop[0]',       [20,0,200], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
     h_MSD_jec     = fastSim.get1DHistoFromDraw('FatJet_msoftdrop_nom[0]',   [20,0,200], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
     h_MSD_full    = fullSim.get1DHistoFromDraw('FatJet_msoftdrop[0]',       [20,0,200], weightString='genWeight', selectionString=presel, addOverFlowBin='upper')
@@ -168,7 +170,7 @@ h_RawMET_unweighted_full.legendText = 'FullSim'
 h_RawMET_unweighted_reco.style      = styles.lineStyle(ROOT.kGreen+1,   width=2, errors=True)
 h_RawMET_unweighted_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
 
-if True:
+if False:
     h_MSD_reco.legendText = 'FastSim'
     h_MSD_jec.legendText  = 'FastSim, JEC reapplied'
     h_MSD_full.legendText = 'FullSim'
@@ -253,7 +255,7 @@ if True:
     h_ele_pt_full.style      = styles.lineStyle(ROOT.kBlue+1,    width=2, errors=True)
     
 
-plot_path = './FatJet_FastFull_top_2016/'
+plot_path = './FatJet_FastFull_top_2016_old/'
 
 plotting.draw(
     Plot.fromHisto(name = 'JEC_AK8', histos = [ [h_profile_JEC_fast], [h_profile_JEC_full] ], texX = "p_{T} (AK8) (GeV)", texY = "jet energy correction"),
@@ -329,7 +331,7 @@ plotting.draw(
     ratio = {'histos': [(0,1)], 'texY': 'x / FullSim'},
 )
 
-if True:
+if False:
     plotting.draw(
         Plot.fromHisto(name = 'mass', histos = [ [h_mass_reco], [h_mass_jec], [h_mass_full] ], texX = "M (GeV)", texY = "a.u."),
         plot_directory = plot_path,

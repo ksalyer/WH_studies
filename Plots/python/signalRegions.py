@@ -44,9 +44,9 @@ lumiStr = 137
 isData = True if not options.expected else False
 massPoints = options.massPoints.split(',')
 
-workspace = 'fitDiagnostics_800_1.root'
-workspace2 = 'fitDiagnostics_425_150.root'
-workspace3 = 'fitDiagnostics_225_75.root'
+workspace  = 'data/fitDiagnostics_800_1.root'
+workspace2 = 'data/fitDiagnostics_425_150.root'
+workspace3 = 'data/fitDiagnostics_225_75.root'
 
 # get the results
 postFitResults = getPrePostFitFromMLF(workspace)

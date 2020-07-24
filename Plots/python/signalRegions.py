@@ -46,7 +46,7 @@ massPoints = options.massPoints.split(',')
 
 workspace  = 'data/fitDiagnostics_800_1.root'
 workspace2 = 'data/fitDiagnostics_425_150.root'
-workspace3 = 'data/fitDiagnostics_225_75.root'
+workspace3 = 'data/fitDiagnostics_350_150.root'
 
 # get the results
 postFitResults = getPrePostFitFromMLF(workspace)
@@ -66,7 +66,8 @@ processes = [('top', 't#bar{t}/single t'),
             ('total_background', 'total'), # for uncertainties
             ('data', 'Total'),
             ('sig', 'TChiWH(800,1)'),
-            ('sig2', 'TChiWH(425,150)')]
+            ('sig2', 'TChiWH(425,150)'),
+            ('sig3', 'TChiWH(350,150)')]
 
 ## need to sort the regions somehow
 #regions = postFitResults['hists']['shapes_prefit'].keys()
@@ -93,14 +94,23 @@ shapes = 'shapes_prefit' if not options.postFit else 'shapes_fit_s'
 for p,tex in processes:
     hists[p].legendText = tex
     for ibin, binName in enumerate(regions):
-        shapesKey = 'shapes_prefit' if p=='sig' else shapes
+        shapesKey = 'shapes_prefit' if p.count('sig') else shapes
         if p == 'data':
             obs = int(round(postFitResults['hists'][shapesKey][binName][p].Eval(1),0))
             hists[p].SetBinContent(ibin+1, obs)
             #hists[p].SetBinError(ibin+1, af(obs)
         elif p == 'sig2':
-            hists[p].SetBinContent(ibin+1, postFitResults2['hists'][shapesKey][binName]['sig'].GetBinContent(1))
-            hists[p].SetBinError(ibin+1, postFitResults2['hists'][shapesKey][binName]['sig'].GetBinError(1))
+            try:
+                hists[p].SetBinContent(ibin+1, postFitResults2['hists'][shapesKey][binName]['sig'].GetBinContent(1))
+                hists[p].SetBinError(ibin+1, postFitResults2['hists'][shapesKey][binName]['sig'].GetBinError(1))
+            except KeyError:
+                hists[p].SetBinContent(ibin+1, 0)
+        elif p == 'sig3':
+            try:
+                hists[p].SetBinContent(ibin+1, postFitResults3['hists'][shapesKey][binName]['sig'].GetBinContent(1))
+                hists[p].SetBinError(ibin+1, postFitResults3['hists'][shapesKey][binName]['sig'].GetBinError(1))
+            except KeyError:
+                hists[p].SetBinContent(ibin+1, 0)
         else:
             try:
                 hists[p].SetBinContent(ibin+1, postFitResults['hists'][shapesKey][binName][p].GetBinContent(1))
@@ -115,6 +125,7 @@ hists['wjets'].style = styles.fillStyle(ROOT.kSpring-9)
 hists['other'].style = styles.fillStyle(ROOT.kRed-2)
 hists['sig'].style = styles.lineStyle(ROOT.kBlack, width=3)
 hists['sig2'].style = styles.lineStyle(ROOT.kBlack, width=3, dashed=True)
+hists['sig3'].style = styles.lineStyle(ROOT.kBlack, width=3, dotted=True)
 hists['data'].SetBinErrorOption(ROOT.TH1F.kPoisson)
 hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
 
@@ -127,7 +138,7 @@ for ib, binName in enumerate(regions):
     val = hists['total_background'].GetBinContent(ib+1)
     sys = hists['total_background'].GetBinError(ib+1)
     sys_rel = sys/val
-    print "Bin {:15}: {:.3} +/- {:.3}".format(binName, val, sys)
+    print "Bin {:25} pred: {:.3} +/- {:.3}, obs: +/-".format(binName, val, sys)
     box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib+1),  max([ymin, val-sys]), hists['total_background'].GetXaxis().GetBinUpEdge(ib+1), max([ymin, val+sys]) )
     box.SetLineColor(ROOT.kGray+1)
     box.SetFillStyle(3244)
@@ -190,7 +201,7 @@ def drawTexLabels( regions ):
     return [tex.DrawLatex(*l) for l in lines]
 
 def getLegend():
-    leg = ROOT.TLegend(0.17,0.75-7*0.045, 0.38, 0.75)
+    leg = ROOT.TLegend(0.17,0.75-8*0.045, 0.38, 0.75)
     leg.SetFillColor(ROOT.kWhite)
     leg.SetShadowColor(ROOT.kWhite)
     leg.SetBorderSize(0)
@@ -208,6 +219,10 @@ def getLegend():
     hists['sig2'].SetLineWidth(2)
     hists['sig2'].SetLineStyle(2)
     leg.AddEntry(hists['sig2'], '#bf{TChiWH(425,150)}', 'l')
+    hists['sig3'].SetLineColor(1)
+    hists['sig3'].SetLineWidth(2)
+    hists['sig3'].SetLineStyle(3)
+    leg.AddEntry(hists['sig3'], '#bf{TChiWH(350,150)}', 'l')
     hists['data'].SetLineColor(1)
     hists['data'].SetLineWidth(1)
     hists['data'].SetMarkerStyle(8)
@@ -229,7 +244,7 @@ def drawObjects( isData=False, lumi=137 ):
 
 drawObjects = drawObjects() + boxes + drawDivisions(regions) + drawTexLabels(regions) + getLegend()
 
-plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']], [hists['sig2']] ]
+plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']], [hists['sig2']], [hists['sig3']] ]
 
 for log, l in [(False,'lin'),(True,'log')]:
 

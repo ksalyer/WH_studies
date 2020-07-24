@@ -21,6 +21,9 @@ from WH_studies.Tools.u_float import u_float as uf
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
+parser.add_option("--nJet",                 action='store',      default=2, type="int", help='Which nJet bin?')
+parser.add_option("--variation",            action='store',      default=None, help='Which variation?')
+parser.add_option("--overwrite",            action='store_true',      default=None, help='Overwrite results?')
 (options, args) = parser.parse_args()
 
 def getRandomHistOfTemplate(hist, color=ROOT.kOrange):
@@ -91,15 +94,12 @@ TTJetsDirs_2017 = glob.glob(mcDir_17+'slim*TTJets_1lep_top_f17v2*.root') \
                 + glob.glob(mcDir_17+'slim*TTZ*.root')
 TTJetsDirs_2018 = glob.glob(mcDir_18+'slim*TTJets_1lep_top_a18v1*.root') \
                 + glob.glob(mcDir_18+'slim*TTJets_1lep_tbar_a18v1*.root') \
-                + glob.glob(mcDir_18+'slim*TTJets_1lep_*met150*.root') \
+                + glob.glob(mcDir_18+'slim*TTJets_1lep_*met80*.root') \
                 + glob.glob(mcDir_18+'slim*TTJets_2lep_a18v1*.root')\
-                + glob.glob(mcDir_18+'slim*TTJets_2lep_*met150*.root')\
+                + glob.glob('/home/users/dspitzba/wh_babies/babies_v33_4_2020_06_12/a18v1/slim*TTJets_2lep_*met80*.root')\
                 + glob.glob(mcDir_18+'slim*_ST_*.root') \
                 + glob.glob(mcDir_18+'slim*TTW*.root') \
                 + glob.glob(mcDir_18+'slim*TTZ*.root')
-
-
-
 
 
 lumi = '137'
@@ -107,10 +107,18 @@ lumi = '137'
 WJets = Sample.fromFiles('WJets', WJetsDirs_2016 + WJetsDirs_2017 + WJetsDirs_2018, "t")
 WJets.setSelectionString("stitch")
 
+print
+print "W+jets files"
+print WJets.files
+
 WX = Sample.fromFiles('WX', WXDirs_2016 + WXDirs_2017 + WXDirs_2018, "t")
 
 TTJets = Sample.fromFiles('TTJets', TTJetsDirs_2016 + TTJetsDirs_2017 + TTJetsDirs_2018, 't')
 TTJets.setSelectionString("stitch")
+
+print
+print "tt+jets files"
+print TTJets.files
 
 DataDirs_2016   = glob.glob(dataDir_16+"slim*data_2016*met*.root")\
                 + glob.glob(dataDir_16+"slim*data_2016*singlemu*.root")\
@@ -123,14 +131,17 @@ DataDirs_2018   = glob.glob(dataDir_18+"slim*data_2018*met*.root")\
                 + glob.glob(dataDir_18+"slim*data_2018*egamma*.root")
 
 Data = Sample.fromFiles('Data', DataDirs_2016 + DataDirs_2017 + DataDirs_2018, 't')
-Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1) && (ngoodbtags<2||mbb<90||mbb>150)")
+#Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1) && (ngoodbtags<2||mbb<90||mbb>150)")
+Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1||HLT_MET_MHT==1) && (ngoodbtags<2||mbb<90||mbb>150)")
 
 
 # CR selection without b-tags
 WHSelection     = "(Sum$(abs(lep1_pdgid)==11&&(leps_pt[0]>30&&(lep1_relIso*leps_pt[0])<5)||abs(lep1_pdgid)==13&&(leps_pt[0]>25&&(lep1_relIso*leps_pt[0])<5&&abs(leps_eta[0])<2.1))+"
 WHSelection    += "Sum$(abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1)))==1"
-#selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&pfmet>125&&mt_met_lep>150&&mct>200&&mbb>90&&mbb<150"
-selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==3&&pfmet>125&&mt_met_lep>150&&mct>200&&mbb>90&&mbb<150"
+if options.nJet == 2:
+    selectionString =  WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&pfmet>125&&mt_met_lep>150&&mct>200&&mbb>90&&mbb<150"
+else:
+    selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==3&&pfmet>125&&mt_met_lep>150&&mct>200&&mbb>90&&mbb<150"
 #selectionString += "&&((year==2016)*Sum$(ak4pfjets_deepCSV<0.6321&&ak4pfjets_pt>300) + (year==2017)*Sum$(ak4pfjets_deepCSV<0.4941&&ak4pfjets_pt>300) + (year==2018)*Sum$(ak4pfjets_deepCSV<0.4184&&ak4pfjets_pt>300))==0"
 
 #selectionString = WHSelection+"&&pass&&nvetoleps==1&&PassTrackVeto&&PassTauVeto&&ngoodjets==2&&pfmet>125&&mt_met_lep>150&&mct>200&&((mbb<90&&mbb>30)||(mbb>150))"
@@ -146,23 +157,25 @@ pdgid = "((%s)+(%s))"%(pdgid1,pdgid2)
 dilepSelection     = "(Sum$(abs(lep1_pdgid)==11&&(leps_pt[0]>30&&(lep1_relIso*leps_pt[0])<5)||abs(lep1_pdgid)==13&&(leps_pt[0]>25&&(lep1_relIso*leps_pt[0])<5&&abs(leps_eta[0])<2.1))+"
 dilepSelection    += "Sum$(abs(lep2_pdgid)==11&&(leps_pt[1]>30&&(lep2_relIso*leps_pt[1])<5)||abs(lep2_pdgid)==13&&(leps_pt[1]>25&&(lep2_relIso*leps_pt[1])<5&&abs(leps_eta[1])<2.1)))==2"
 
-#raise NotImplementedError
-    
-## fancy reweighting for Higgs tag estimation
+## fancy (old) reweighting for Higgs tag estimation
 reweighting = "((ak8pfjets_pt[0]>170&&ak8pfjets_pt[0]<250)*0.05 + (ak8pfjets_pt[0]>250&&ak8pfjets_pt[0]<300)*0.15 + (ak8pfjets_pt[0]>300&&ak8pfjets_pt[0]<400)*0.27 + (ak8pfjets_pt[0]>400&&ak8pfjets_pt[0]<500)*0.35 + (ak8pfjets_pt[0]>500&&ak8pfjets_pt[0]<750)*0.40 + (ak8pfjets_pt[0]>750)*0.35)"
 
 # for systematics
-reweight = '(1)'
-#reweight = 'w_btagHFDown'
+if options.variation == None:
+    reweight = '(1)'
+    histogramPickle = 'histograms_%s_%sjet.pkl'%(year, options.nJet)
+else:
+    reweight = options.variation
+    histogramPickle = 'histograms_%s%s_%sjet.pkl'%(year, reweight, options.nJet)
+#reweights = ['w_btagHFDown', 'w_btagHFUp', 'w_btagLFDown', 'w_btagLFUp']
+#reweight = reweights[0]
 
-histogramPickle = 'histograms_%s_3jet.pkl'%(year)
-#histogramPickle = 'histograms_%s%s_2jet.pkl'%(year, reweight)
 
-yearWeight = "((year==2016)*35.9+((year==2017)*41.6)+((year==2018)*59.7))" # only need weight*w_pu in addition
+yearWeight = "((year==2016)*35.9+((year==2017)*41.6)+((year==2018)*59.7))"
 
-if not os.path.isfile(histogramPickle):
+if not os.path.isfile(histogramPickle) or options.overwrite:
 
-    weights = '*'.join(['weight', 'w_pu', yearWeight] + [reweight])
+    weights = '*'.join(['weight', 'trig_eff', yearWeight] + [reweight])
 
     print "W+jets templates"
     WJets2D_pos = WJets.get2DHistoFromDraw('ngoodbtags:pfmet', [[125,200,300,400,1000], [-0.5,0.5,1.5,2.5,3.5]], selectionString=selectionString+"&&%s>0"%pdgid, weightString=weights, binningIsExplicit=True) # x-pfmet, y-ngoodbtags
@@ -399,7 +412,9 @@ for metBin in range(len(metBins)):
 
             histos = [[WJetsHist_pos_postFit], [TTJetsHist_postFit], [Total_postFit], [WJetsHist_pos], [TTJetsHist], [Data_postFit] ]
 
-            plotName = '%s_nBTagFitRes_nice_%s_3jet'%(year, MET_string) + reweight
+            plotName = '%s_nBTagFitRes_nice_%s_%sjet'%(year, MET_string, options.nJet) 
+            if options.variation is not None:
+                plotName += reweight
 
             histos_for_pkl = {'tt_pre':TTJetsHist, 'tt_post':TTJetsHist_postFit, 'data':Data_postFit, 'wjets_pre':WJetsHist_pos, 'wjets_post':WJetsHist_pos_postFit, 'total_post':Total_postFit}
 

@@ -6,7 +6,8 @@ from RootTools.core.standard import *
 #path = '/home/users/dspitzba/wh_babies/babies_v33_4_2020_05_27/f17v2/'
 #path = '/home/users/dspitzba/wh_babies/babies_v33_4_2020_05_27/s16v3/'
 #path = '/home/users/dspitzba/wh_babies/babies_v33_4_2020_05_27/'
-path = '/home/users/dspitzba/wh_babies/babies_v33_4_2020_07_09/'
+#path = '/home/users/dspitzba/wh_babies/babies_v33_4_2020_07_09/'
+path = '/home/users/dspitzba/wh_babies/babies_v33_8_2020_07_16/'
 
 files = glob.glob(path+'slim_*.root')
 

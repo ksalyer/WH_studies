@@ -13,6 +13,7 @@ SCRAM_ARCH=$6
 VERSION=$7
 YEAR=$8
 ISDATA=$9
+ISFAST=${10}
 
 OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
 
@@ -71,6 +72,11 @@ voms-proxy-info
 
 echo 'starting post processing'
 
+echo 'Data?'
+echo $ISDATA
+echo 'FastSim?'
+echo $ISFAST
+
 python << EOL
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor   import PostProcessor
@@ -83,17 +89,21 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.WH.higgsTagging       impo
 
 import os
 
-year = '%s'%os.path.expandvars("$YEAR")
-isData = int( os.path.expandvars('$ISDATA') )
+year = '%s'%os.path.expandvars("${YEAR}")
+isData = int( os.path.expandvars('${ISDATA}') )
+isFastSim = int( os.path.expandvars('${ISFAST}') )
 
-print isData
+print "Do I fail here? Then there's something wrong with the switches."
+print 'Data: %s, FastSim: %s'%(isData, isFastSim)
 
 
-jetmet = createJMECorrector(isMC=(not isData), dataYear=year, jesUncert="Total", isFastSim=False, jetType = "AK8PFPuppi", applySmearing = False)
+jetmet = createJMECorrector(isMC=(not isData), dataYear=year, jesUncert="Total", jetType = "AK8PFPuppi", applySmearing = False, isFastSim = isFastSim )
+met = createJMECorrector(isMC=(not isData), dataYear=year, jesUncert="Total", jetType = "AK4PFchs", applySmearing = False, isFastSim = isFastSim )
 
 modules = [\
     # reapply JECs
     jetmet(),
+    met(),
     higgsTagging( int(year), isData )
     ]
 
@@ -102,13 +112,18 @@ inFile = os.path.expandvars("root://cms-xrd-global.cern.ch/$INPUTFILENAMES")
 print "This is the input file:"
 print inFile
 
-p = PostProcessor('./', [inFile], cut='(1)', modules=modules,\
-    branchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop.txt',\
-    outputbranchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop_out.txt',\
+cut = '(1)'
+cut = 'Max\$(GenPart_mass*(abs(GenPart_pdgId)==1000024))==750&&Max\$(GenPart_mass*(abs(GenPart_pdgId)==1000022))==1'
+
+p = PostProcessor('./', [inFile], cut=cut, modules=modules,\
     prefetch=True)
 
 p.run()
 EOL
+
+#    branchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop.txt',\
+#    outputbranchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop_out.txt',\
+
 
 #python PhysicsTools/NanoAODTools/scripts/nano_postproc.py ./ $INPUTFILENAMES \
 #    --branch-selection PhysicsTools/NanoAODTools/python/postprocessing/modules/tW_scattering/keep_and_drop.txt \

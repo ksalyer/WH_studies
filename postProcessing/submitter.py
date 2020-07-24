@@ -48,11 +48,21 @@ merge_tasks = []
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if 'data_2017' in x}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('f17v2' in x or 'data_2017' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if not ('data' in x)}
+#wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('18fast' in wh_samples[x].lower())}
+wh_samples = {'SMS_TChiWH_s16v3':wh_samples['SMS_TChiWH_s16v3']}
 #wh_samples = {'data_2017B_met': wh_samples['data_2017B_met']}
-wh_samples = {'WWToLNuQQ_f17v2': wh_samples['WWToLNuQQ_f17v2']}
+#wh_samples = {'WWToLNuQQ_f17v2': wh_samples['WWToLNuQQ_f17v2']}
 
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('WplusH_HToBB_WToLNu' in x or 'WminusH_HToBB_WToLNu' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if 'JetsToLNu_a18v1' in x}
+#wh_samples = {}
+
+#wh_samples.update({\
+#    'SMS_TChiWH_mCh350_mLSP100_a18v1': '/SMS_TChiWH_WToLNu_HToBB_mChargino350_mLSP100_TuneCP2_13TeV-madgraphMLM-pythia8/dspitzba-crab_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_legacy_nano_v7-abeda1cb31fcbcff01a3aca0ccd28378/USER',\
+#    'SMS_TChiWH_mCh750_mLSP1_a18v1': '/SMS_TChiWH_WToLNu_HToBB_mChargino750_mLSP1_TuneCP2_13TeV-madgraphMLM-pythia8/dspitzba-crab_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_legacy_nano_v7-abeda1cb31fcbcff01a3aca0ccd28378/USER',\
+#    "SMS_TChiWH_mCh350_mLSP100_s16v3" : "/SMS_TChiWH_WToLNu_HToBB_mChargino350_mLSP100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",\
+#    "SMS_TChiWH_mCh750_mLSP1_s16v3" : "/SMS_TChiWH_WToLNu_HToBB_mChargino750_mLSP1_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",
+#    })
 
 dryRun = False
 
@@ -70,19 +80,24 @@ for s in wh_samples.keys():
     print
     print s
     miniAOD = wh_samples[s]
-    if "NANOAOD" in miniAOD:
-        nanoAOD = miniAOD
-        print "Already have nanoAOD"
+    if "NANOAOD" in miniAOD or "USER" in miniAOD:
+        nanoAOD7 = miniAOD
+        nanoAOD6 = None
+        isData = False ## careful with that!
+        isFast = True if miniAOD.lower().count('fast') else False
+        print "Already have nanoAOD. Assume it's simulation."
     else:
         print miniAOD
         if 'SIM' in miniAOD:
             nanoAOD6 = getChild(miniAOD, MCversion6)
             nanoAOD7 = getChild(miniAOD, MCversion7)
             isData = False
+            isFast = True if miniAOD.lower().count('fast') else False
         else:
             nanoAOD6 = getChild(miniAOD, DataVersion6)
             nanoAOD7 = getChild(miniAOD, DataVersion7)
             isData = True
+            isFast = False
     if not (nanoAOD6 or nanoAOD7):
         #missingNano.append(miniAOD)
         print "No nanoAOD sample found, exiting..."
@@ -91,6 +106,7 @@ for s in wh_samples.keys():
         #raise NotImplementedError
     print nanoAOD6
     print nanoAOD7
+    print "Data: %s, Fast: %s"%(isData,isFast)
 
     if nanoAOD6:
         sample6 = DBSSample(dataset=nanoAOD6)
@@ -133,9 +149,11 @@ for s in wh_samples.keys():
 
     print "Found year:",year
 
-    tag = 'WHv1p3'
+    #tag = 'WHv1p4'
+    tag = 'm750_s16_v7'
     #raise NotImplementedError
     isData = 1 if isData else 0
+    isFast = 1 if isFast else 0
 
     if not dryRun:
         maker_task = CondorTask(
@@ -143,7 +161,7 @@ for s in wh_samples.keys():
                 #'/hadoop/cms/store/user/dspitzba/nanoAOD/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8__RunIIAutumn18NanoAODv6-Nano25Oct2019_102X_upgrade2018_realistic_v20_ext1-v1/',
             # open_dataset = True, flush = True,
             executable = "executable.sh",
-            arguments = "WHv1p2 %s %s"%(year, isData),
+            arguments = "WHv1p2 %s %s %s"%(year, isData, isFast),
             #tarfile = "merge_scripts.tar.gz",
             files_per_output = 1,
             #output_dir = os.path.join(outDir, sample.get_datasetname()),
@@ -172,9 +190,10 @@ for s in wh_samples.keys():
             ),
             # open_dataset = True, flush = True,
             executable = "merge_executable.sh",
-            arguments = "WHv1p2 %s %s"%(year, isData),
+            arguments = "WHv1p2 %s %s %s"%(year, isData, isFast),
             #tarfile = "merge_scripts.tar.gz",
-            files_per_output = 10,
+            #files_per_output = 10,
+            files_per_output = 100,
             output_dir = maker_task.get_outputdir() + "/merged",
             output_name = s+".root",
             output_is_tree = True,

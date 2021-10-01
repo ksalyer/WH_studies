@@ -396,7 +396,9 @@ for metBin in range(len(metBins)):
 
             # store values
             W_pred[metBin]['W_0b'] = W_0b_fit
+            W_pred[metBin]['W_SF'] = SF_W
             W_pred[metBin]['tt_0b'] = tt_0b
+            W_pred[metBin]['tt_SF'] = SF_top
             W_pred[metBin]['data_0b'] = DataHist_pos.GetBinContent(1)+DataHist_neg.GetBinContent(1)
 
             # prefit
@@ -444,5 +446,5 @@ for metBin in range(len(metBins)):
                 drawObjects = drawObjects,
             )
 
-histogramPickle = histogramPickle.replace('histograms', 'results')
+histogramPickle = histogramPickle.replace('histograms', 'results_v2')
 pickle.dump(W_pred, file(histogramPickle, 'w'))

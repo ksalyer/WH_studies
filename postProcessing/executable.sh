@@ -113,7 +113,6 @@ print "This is the input file:"
 print inFile
 
 cut = '(1)'
-cut = 'Max\$(GenPart_mass*(abs(GenPart_pdgId)==1000024))==750&&Max\$(GenPart_mass*(abs(GenPart_pdgId)==1000022))==1'
 
 p = PostProcessor('./', [inFile], cut=cut, modules=modules,\
     prefetch=True)
@@ -121,6 +120,7 @@ p = PostProcessor('./', [inFile], cut=cut, modules=modules,\
 p.run()
 EOL
 
+#cut = 'Max\$(GenPart_mass*(abs(GenPart_pdgId)==1000024))==750&&Max\$(GenPart_mass*(abs(GenPart_pdgId)==1000022))==1'
 #    branchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop.txt',\
 #    outputbranchsel='PhysicsTools/NanoAODTools/python/postprocessing/modules/WH/keep_and_drop_out.txt',\
 

@@ -49,20 +49,22 @@ merge_tasks = []
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('f17v2' in x or 'data_2017' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if not ('data' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('18fast' in wh_samples[x].lower())}
-wh_samples = {'SMS_TChiWH_s16v3':wh_samples['SMS_TChiWH_s16v3']}
+#wh_samples = {'SMS_TChiWH_s16v3':wh_samples['SMS_TChiWH_s16v3']}
 #wh_samples = {'data_2017B_met': wh_samples['data_2017B_met']}
 #wh_samples = {'WWToLNuQQ_f17v2': wh_samples['WWToLNuQQ_f17v2']}
 
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if ('WplusH_HToBB_WToLNu' in x or 'WminusH_HToBB_WToLNu' in x)}
 #wh_samples = {x:wh_samples[x] for x in wh_samples.keys() if 'JetsToLNu_a18v1' in x}
-#wh_samples = {}
+wh_samples = {}
 
-#wh_samples.update({\
+wh_samples.update({\
 #    'SMS_TChiWH_mCh350_mLSP100_a18v1': '/SMS_TChiWH_WToLNu_HToBB_mChargino350_mLSP100_TuneCP2_13TeV-madgraphMLM-pythia8/dspitzba-crab_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_legacy_nano_v7-abeda1cb31fcbcff01a3aca0ccd28378/USER',\
 #    'SMS_TChiWH_mCh750_mLSP1_a18v1': '/SMS_TChiWH_WToLNu_HToBB_mChargino750_mLSP1_TuneCP2_13TeV-madgraphMLM-pythia8/dspitzba-crab_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2_legacy_nano_v7-abeda1cb31fcbcff01a3aca0ccd28378/USER',\
 #    "SMS_TChiWH_mCh350_mLSP100_s16v3" : "/SMS_TChiWH_WToLNu_HToBB_mChargino350_mLSP100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",\
 #    "SMS_TChiWH_mCh750_mLSP1_s16v3" : "/SMS_TChiWH_WToLNu_HToBB_mChargino750_mLSP1_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM",
-#    })
+    "SMS_TChiWH_mCh350_mLSP100_f17v2" : "/SMS_TChiWH_WToLNu_HToBB_mChargino350_mLSP100_TuneCP2_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v3/MINIAODSIM",\
+    "SMS_TChiWH_mCh750_mLSP1_f17v2" : "/SMS_TChiWH_WToLNu_HToBB_mChargino750_mLSP1_TuneCP2_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v3/MINIAODSIM",
+    })
 
 dryRun = False
 
@@ -150,7 +152,7 @@ for s in wh_samples.keys():
     print "Found year:",year
 
     #tag = 'WHv1p4'
-    tag = 'm750_s16_v7'
+    tag = 'fullSim_v7'
     #raise NotImplementedError
     isData = 1 if isData else 0
     isFast = 1 if isFast else 0

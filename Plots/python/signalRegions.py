@@ -45,9 +45,12 @@ isData = True if not options.expected else False
 massPoints = options.massPoints.split(',')
 
 #workspace  = 'data/fitDiagnostics_750_1.root'
-workspace  = 'data/fitDiagnostics_800_100.root'
-workspace2 = 'data/fitDiagnostics_425_150.root'
-workspace3 = 'data/fitDiagnostics_225_75.root'
+#workspace  = 'data/fitDiagnostics_800_100.root'
+#workspace  = 'data/fitDiagnostics_800_100_ARC.root'
+workspace  = 'data/fitDiagnostics_800_100_ARC_update.root'
+#workspace  = 'data/datacard_mChi-800_mLSP-100__fix.root'
+workspace2 = 'data/fitDiagnostics_425_150_ARC_update.root'
+workspace3 = 'data/fitDiagnostics_225_75_ARC_update.root'
 
 # get the results
 postFitResults = getPrePostFitFromMLF(workspace)
@@ -61,8 +64,8 @@ bhistos=[]
 hists={}
 histos={}
 bkgHist=[]
-processes = [('top', 't#bar{t}/single t'),
-            ('wjets', 'W+jets'),
+processes = [('top', 'Top quark'),
+            ('wjets', 'W boson'),
             ('other', 'SM WH'),
             ('total_background', 'total'), # for uncertainties
             ('data', 'Total'),
@@ -96,12 +99,16 @@ shapes = 'shapes_prefit' if not options.postFit else 'shapes_fit_s'
 
 res = []
 
+import copy
+
 dict_for_table = []
 for ibin, region in enumerate(regions):
     binName, nJet, nHiggs, MET = region
     row = {'MET':MET, 'nJet':nJet, 'nHiggs':nHiggs, 'wjets':0, 'top':0, 'other':0, 'total_background':0, 'sig':0, 'sig2':0, 'sig3':0, 'data':0}
-    dict_for_table.append(row)
-    res.append(row)
+    dict_for_table.append(copy.deepcopy(row))
+    res.append(copy.deepcopy(row))
+
+total_pred = 0
 
 for p,tex in processes:
     hists[p].legendText = tex
@@ -126,6 +133,7 @@ for p,tex in processes:
                 pred, err = 0, 0
         else:
             try:
+                print p, shapesKey
                 pred = postFitResults['hists'][shapesKey][binName][p].GetBinContent(1)
                 err  = postFitResults['hists'][shapesKey][binName][p].GetBinError(1)
             except KeyError:
@@ -135,26 +143,34 @@ for p,tex in processes:
         if not p == 'data':
             hists[p].SetBinError(ibin+1, err)
 
-        if pred<0.01:
-            pred_str = '$<0.01$'
-        elif pred<0.1:
+        if p == 'data':
+             pred_str = "%s"%int(pred)
+        elif pred<0.02:
+            pred_str = '$\leq 0.01$'
+        elif pred<1.0:
         #elif p=='other':
             pred_str = "${:.2f} \pm {:.2f}$".format(pred, err)
         else:
-            pred_str = "${:.2f} \pm {:.2f}$".format(pred, err)
+            pred_str = "${:.1f} \pm {:.1f}$".format(pred, err)
         dict_for_table[ibin][p] = pred_str
         res[ibin][p] = pred
 
-colors = {'top':ROOT.kAzure+6, 'wjets':ROOT.kGreen+1, 'other':ROOT.kRed-2}
+#test = ROOT.TColor(2021, 0.6, 0.6, 1.0)  # old
+test = ROOT.TColor(2021, 0.647, 0.53, 1.0)
+#colors = {'top':ROOT.kAzure+1, 'wjets':ROOT.kGreen+1, 'other':ROOT.kOrange+7} # single-t would be kOrange
+colors = {'top':ROOT.kAzure+1, 'wjets':ROOT.kGreen+1, 'other':2021} # single-t would be kOrange
 
-hists['top'].style = styles.fillStyle(ROOT.kAzure+6)
+hists['top'].style = styles.fillStyle(ROOT.kAzure+1)
 hists['wjets'].style = styles.fillStyle(ROOT.kGreen+1)
-hists['other'].style = styles.fillStyle(ROOT.kRed-2)
-hists['sig'].style = styles.lineStyle(ROOT.kBlack, width=3)
-hists['sig2'].style = styles.lineStyle(ROOT.kBlack, width=3, dashed=True)
-hists['sig3'].style = styles.lineStyle(ROOT.kBlack, width=3, dotted=True)
+#hists['other'].style = styles.fillStyle(ROOT.kOrange+7)
+hists['other'].style = styles.fillStyle(2021)
+hists['sig'].style = styles.lineStyle(ROOT.kRed, width=3)
+hists['sig2'].style = styles.lineStyle(ROOT.kRed, width=3, dashed=True)
+hists['sig3'].style = styles.lineStyle(ROOT.kRed, width=3, dotted=True)
 hists['data'].SetBinErrorOption(ROOT.TH1F.kPoisson)
 hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
+
+total_pred = hists['total_background'].Integral()
 
 ymin = 0.006
 
@@ -168,22 +184,26 @@ for ib, region in enumerate(regions):
     sys_rel = sys/val
     print "Bin {:25} pred: {:.3} +/- {:.3}, obs: +/-".format(binName, val, sys)
     box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib+1),  max([ymin, val-sys]), hists['total_background'].GetXaxis().GetBinUpEdge(ib+1), max([ymin, val+sys]) )
-    box.SetLineColor(ROOT.kGray+1)
-    box.SetFillStyle(3244)
-    box.SetFillColor(ROOT.kGray+1)
+    #box.SetLineColor(ROOT.kGray+1)
+    #box.SetFillStyle(3244)
+    box.SetFillStyle(1001)
+    #box.SetFillColor(ROOT.kGray+1)
+    box.SetFillColorAlpha(ROOT.kBlack, 0.2)
     boxes.append(box)
 
     r_box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib+1),  max(0.11, 1-sys_rel), hists['total_background'].GetXaxis().GetBinUpEdge(ib+1), min(1.9, 1+sys_rel) )
-    r_box.SetLineColor(ROOT.kGray+1)
-    r_box.SetFillStyle(3244)
-    r_box.SetFillColor(ROOT.kGray+1)
+    #r_box.SetLineColor(ROOT.kGray+1)
+    r_box.SetFillStyle(1001)
+    r_box.SetFillColorAlpha(ROOT.kBlack, 0.2)
+    #r_box.SetFillStyle(3244)
+    #r_box.SetFillColor(ROOT.kGray+1)
     ratio_boxes.append(r_box)
 
 
 binLabels = ['','200','300','400','','300','','200','300','400','','300','']
 def setBinLabels( hist ):
     for i in range(1, hist.GetNbinsX()+1):
-        hist.GetXaxis().SetBinLabel(i, '%s        '%binLabels[i-1])
+        hist.GetXaxis().SetBinLabel(i, '%s       '%binLabels[i-1])
 
 def drawDivisions(regions):
     # divisions in main plot
@@ -195,9 +215,9 @@ def drawDivisions(regions):
     line = ROOT.TLine()
     line.SetLineWidth(1)
     line.SetLineStyle(2)
-    lines  = [ (min+4*diff,  0.005, min+4*diff, 0.84) ]
-    lines += [ (min+6*diff,  0.005, min+6*diff, 0.90) ]
-    lines += [ (min+10*diff,  0.005, min+10*diff, 0.84) ]
+    lines  = [ (min+4*diff,  0.005, min+4*diff, 0.57) ]
+    lines += [ (min+6*diff,  0.005, min+6*diff, 0.65) ]
+    lines += [ (min+10*diff,  0.005, min+10*diff, 0.57) ]
     return [line.DrawLineNDC(*l) for l in lines] + [tex.DrawLatex(*l) for l in []] + [tex2.DrawLatex(*l) for l in lines2]
 
 def drawDivisionsRatio(regions):
@@ -224,12 +244,12 @@ def drawTexLabels( regions ):
     min = 0.15
     max = 0.95
     diff = (max-min) / len(regions)
-    lines  = [ (min + (7./2)*diff-0.02, 0.87, "#bf{N_{jets} = 2}"), (min + (3./2)*diff, 0.82, "#bf{N_{H} = 0}"), (min + (9./2)*diff, 0.82, "#bf{N_{H} = 1}") ] 
-    lines += [ (min + (19./2)*diff-0.02, 0.87, "#bf{N_{jets} = 3}"), (min + (15./2)*diff, 0.82, "#bf{N_{H} = 0}"), (min + (21./2)*diff, 0.82, "#bf{N_{H} = 1}")] 
+    lines  = [ (min + (7./2)*diff-0.02, 0.60, "#bf{N_{jets} = 2}"), (min + (3./2)*diff, 0.55, "#bf{N_{H} = 0}"), (min + (9./2)*diff, 0.55, "#bf{N_{H} = 1}") ] 
+    lines += [ (min + (19./2)*diff-0.02, 0.60, "#bf{N_{jets} = 3}"), (min + (15./2)*diff, 0.55, "#bf{N_{H} = 0}"), (min + (21./2)*diff, 0.55, "#bf{N_{H} = 1}")] 
     return [tex.DrawLatex(*l) for l in lines]
 
 def getLegend():
-    leg = ROOT.TLegend(0.17,0.75-8*0.045, 0.38, 0.75)
+    leg = ROOT.TLegend(0.17,0.90-5*0.050, 0.44, 0.90)
     leg.SetFillColor(ROOT.kWhite)
     leg.SetShadowColor(ROOT.kWhite)
     leg.SetBorderSize(0)
@@ -237,26 +257,42 @@ def getLegend():
     for p,tex in processes:
         if p.count('sig') or p=='data' or p=='total_background': continue
         hists[p].SetFillColor(colors[p])
-        hists[p].SetLineColor(colors[p])
+        hists[p].SetLineColor(ROOT.kBlack)
         leg.AddEntry(hists[p], '#bf{%s}'%tex, 'f' )
-    hists['sig'].SetLineColor(1)
-    hists['sig'].SetLineWidth(2)
-    hists['sig'].SetLineStyle(1)
-    leg.AddEntry(hists['sig'], '#bf{TChiWH(800,100)}', 'l')
-    hists['sig2'].SetLineColor(1)
-    hists['sig2'].SetLineWidth(2)
-    hists['sig2'].SetLineStyle(2)
-    leg.AddEntry(hists['sig2'], '#bf{TChiWH(425,150)}', 'l')
-    hists['sig3'].SetLineColor(1)
-    hists['sig3'].SetLineWidth(2)
-    hists['sig3'].SetLineStyle(3)
-    leg.AddEntry(hists['sig3'], '#bf{TChiWH(225,75)}', 'l')
     hists['data'].SetLineColor(1)
     hists['data'].SetLineWidth(1)
     hists['data'].SetMarkerStyle(8)
     leg.AddEntry(hists['data'], '#bf{Observed}', 'e1p')
     boxes[0].SetLineWidth(0)
     leg.AddEntry(boxes[0], '#bf{Uncertainty}', 'f')
+    return [leg]
+
+dummy = ROOT.TH1F('dummy','dummy', 1,0,1)
+def getSignalLegend():
+    leg = ROOT.TLegend(0.40,0.90-4*0.050, 0.80, 0.90)
+    leg.SetFillColor(ROOT.kWhite)
+    leg.SetShadowColor(ROOT.kWhite)
+    leg.SetBorderSize(0)
+    leg.SetTextSize(0.040)
+    # add the description
+    #boxes[0].SetLineWidth(0)
+    #boxes[0].SetFillColor(0)
+    dummy.SetLineWidth(0)
+    dummy.SetMarkerSize(0)
+    leg.AddEntry(dummy, '#bf{#tilde{#chi}^{0}_{2} #rightarrow H #tilde{#chi}^{0}_{1},  #tilde{#chi}^{#pm}_{1} #rightarrow W^{#pm} #tilde{#chi}^{0}_{1}}')
+    # add the entries
+    hists['sig'].SetLineColor(ROOT.kRed)
+    hists['sig'].SetLineWidth(3)
+    hists['sig'].SetLineStyle(1)
+    leg.AddEntry(hists['sig'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 800 GeV, m_{#tilde{#chi}^{0}_{1}} = 100 GeV}', 'l')
+    hists['sig2'].SetLineColor(ROOT.kRed)
+    hists['sig2'].SetLineWidth(3)
+    hists['sig2'].SetLineStyle(3)
+    leg.AddEntry(hists['sig2'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 425 GeV, m_{#tilde{#chi}^{0}_{1}} = 150 GeV}', 'l')
+    hists['sig3'].SetLineColor(ROOT.kRed)
+    hists['sig3'].SetLineWidth(3)
+    hists['sig3'].SetLineStyle(2)
+    leg.AddEntry(hists['sig3'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 225 GeV, m_{#tilde{#chi}^{0}_{1}} = 75 GeV}', 'l')
     return [leg]
 
 def drawObjects( isData=False, lumi=137 ):
@@ -270,7 +306,7 @@ def drawObjects( isData=False, lumi=137 ):
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
-drawObjects = drawObjects(isData) + boxes + drawDivisions(regions) + drawTexLabels(regions) + getLegend()
+drawObjects = drawObjects(isData) + boxes + drawDivisions(regions) + drawTexLabels(regions) + getLegend() + getSignalLegend()
 
 plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']], [hists['sig2']], [hists['sig3']] ]
 #plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']] ]
@@ -286,16 +322,24 @@ for log, l in [(False,'lin'),(True,'log')]:
     plotting.draw(
         Plot.fromHisto('signalRegions'+postFix,
                     plots,
-                    texX = "E_{T}^{miss} (GeV)",
-                    texY = 'Number of events',
+                    texX = "p_{T}^{miss} [GeV]",
+                    texY = 'Events',
                 ),
-        plot_directory = os.path.join('/home/users/dspitzba/public_html/WH_studies/', "signalRegions_unblind_test"),
+        plot_directory = os.path.join('/home/users/dspitzba/public_html/WH_studies/', "signalRegions_unblind_ref"),
         logX = False, logY = log, sorting = False, 
         legend = None,
         widths = {'x_width':800, 'y_width':600, 'y_ratio_width':250},
-        yRange = (ymin,3000) if log else (0,30),
+        yRange = (ymin,3000) if log else (0.01,32),
         drawObjects = drawObjects,
-        ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'histModifications': [lambda h: setBinLabels(h)], 'drawObjects':drawDivisionsRatio(regions)+ratio_boxes},
+        #histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2)],
+        histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28)],
+        ratio = {
+            'yRange': (0.11, 2.19), 
+            'texY':'#frac{Obs.}{Pred.}', 
+            'histos':[(1,0)], 
+            'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.025), lambda h: h.GetXaxis().SetTitleOffset(4.2)], 
+            'drawObjects':drawDivisionsRatio(regions)+ratio_boxes
+        },
         copyIndexPHP = True,
     )
 
@@ -303,5 +347,24 @@ import pandas as pd
 
 df = pd.DataFrame(dict_for_table)
 
-#print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'sig', 'sig2', 'sig3'], index=False, escape=False)
-print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'sig'], index=False, escape=False)
+#print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
+
+print
+print "######################################################"
+print "######## PAPER VERSION OF THE TABLE ##################"
+print "######################################################"
+print
+
+print df.to_latex(columns=['nJet','nHiggs', 'MET','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
+
+print
+print
+print
+print
+print "######################################################"
+print "######### NOTE VERSION OF THE TABLE ##################"
+print "######################################################"
+print
+
+print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
+

@@ -47,15 +47,12 @@ massPoints = options.massPoints.split(',')
 #workspace  = 'data/fitDiagnostics_750_1.root'
 #workspace  = 'data/fitDiagnostics_800_100.root'
 #workspace  = 'data/fitDiagnostics_800_100_ARC.root'
-workspace  = 'data/fitDiagnostics_800_100_ARC_update.root'
+#workspace  = 'data/fitDiagnostics_800_100_ARC_update.root'
 #workspace  = 'data/datacard_mChi-800_mLSP-100__fix.root'
-workspace2 = 'data/fitDiagnostics_425_150_ARC_update.root'
-workspace3 = 'data/fitDiagnostics_225_75_ARC_update.root'
+workspace = 'fitDiagnostics.root'
 
 # get the results
 postFitResults = getPrePostFitFromMLF(workspace)
-postFitResults2 = getPrePostFitFromMLF(workspace2)
-postFitResults3 = getPrePostFitFromMLF(workspace3)
 covariance = getCovarianceFromMLF(workspace, postFit=options.postFit)
 
 preFitHist={}
@@ -71,8 +68,8 @@ processes = [('top', 'Top quark'),
             ('data', 'Total'),
             ('sig', 'TChiWH(800,100)'),
             #('sig', 'TChiWH(750,1)'),
-            ('sig2', 'TChiWH(425,150)'),
-            ('sig3', 'TChiWH(225,75)'),\
+            #('sig2', 'TChiWH(425,150)'),
+            #('sig3', 'TChiWH(225,75)'),\
             ]
 
 ## need to sort the regions somehow
@@ -119,18 +116,6 @@ for p,tex in processes:
             pred = int(round(postFitResults['hists'][shapesKey][binName][p].Eval(1),0))
             #hists[p].SetBinContent(ibin+1, obs)
             #hists[p].SetBinError(ibin+1, af(obs)
-        elif p == 'sig2':
-            try:
-                pred = postFitResults2['hists'][shapesKey][binName]['sig'].GetBinContent(1)
-                err  = postFitResults2['hists'][shapesKey][binName]['sig'].GetBinError(1)
-            except KeyError:
-                pred, err = 0, 0
-        elif p == 'sig3':
-            try:
-                pred = postFitResults3['hists'][shapesKey][binName]['sig'].GetBinContent(1)
-                err  = postFitResults3['hists'][shapesKey][binName]['sig'].GetBinError(1)
-            except KeyError:
-                pred, err = 0, 0
         else:
             try:
                 print p, shapesKey

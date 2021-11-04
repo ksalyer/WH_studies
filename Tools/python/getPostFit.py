@@ -18,7 +18,7 @@ from WH_studies.Tools.u_float import u_float
 import math
 import copy
 
-from StopsDilepton.tools.helpers import getObjFromFile, natural_sort
+from WH_studies.Tools.helpers import natural_sort
 
 def getValFrom1BinnedHistOrGraph( hist ):
     """

@@ -231,7 +231,7 @@ elif year == 2018:
     Data = Sample.fromFiles('Data', glob.glob(dataDir+"slim*data_2018*.root"), 't')
     Data.setSelectionString("pass&&(HLT_SingleEl==1||HLT_SingleMu==1) && (ngoodbtags<2||mbb<90||mbb>150)")
 
-elif year == 'combined'
+elif year == 'combined':
     dataDir_16 = '/home/users/dspitzba/wh_babies/babies_v33_4_2019_12_30/'
     dataDir_17 = '/home/users/dspitzba/wh_babies/babies_Run2017_v33_4_2019_12_30/'
     dataDir_18 = '/home/users/dspitzba/wh_babies/babies_Run2018_v33_4_2019_12_30/'

@@ -30,7 +30,8 @@ from WH_studies.Tools.u_float           import u_float
 from WH_studies.Tools.asym_float           import asym_float as af
 from WH_studies.Tools.getPostFit        import *
 
-regions = range(12)
+#regions = range(12)
+regions = range(20)
 
 from RootTools.core.standard import *
 # logger
@@ -61,12 +62,12 @@ bhistos=[]
 hists={}
 histos={}
 bkgHist=[]
-processes = [('top', 'Top quark'),
-            ('wjets', 'W boson'),
-            ('other', 'SM WH'),
+processes = [('rares', 'SM SS'),
+            ('fakes_mc', 'Nonprompt'),
+            ('flips_mc', 'Charge Flip'),
             ('total_background', 'total'), # for uncertainties
             ('data', 'Total'),
-            ('sig', 'TChiWH(800,100)'),
+            ('signal', 'tqH'),
             #('sig', 'TChiWH(750,1)'),
             #('sig2', 'TChiWH(425,150)'),
             #('sig3', 'TChiWH(225,75)'),\
@@ -75,18 +76,26 @@ processes = [('top', 'Top quark'),
 ## need to sort the regions somehow
 #regions = postFitResults['hists']['shapes_prefit'].keys()
 regions = [\
-    ('nj2_lowmet_res',   2, 0, '125--200'),
-    ('nj2_medmet_res',   2, 0, '200--300'),
-    ('nj2_highmet_res',  2, 0, '300--400'),
-    ('nj2_vhighmet_res', 2, 0, '$>400$'),
-    ('nj2_lowmet_boos',  2, 1, '125--300'),
-    ('nj2_medmet_boos',  2, 1, '$>300$'),
-    ('nj3_lowmet_res',   3, 0, '125--200'),
-    ('nj3_medmet_res',   3, 0, '200--300'),
-    ('nj3_highmet_res',  3, 0, '300--400'),
-    ('nj3_vhighmet_res', 3, 0, '$>400$'),
-    ('nj3_lowmet_boos',  3, 1, '125--300'),
-    ('nj3_medmet_boos',  3, 1, '$>300$')
+    ('bin_0'),
+    ('bin_1'),
+    ('bin_2'),
+    ('bin_3'),
+    ('bin_4'),
+    ('bin_5'),
+    ('bin_6'),
+    ('bin_7'),
+    ('bin_8'),
+    ('bin_9'),
+    ('bin_10'),
+    ('bin_11'),
+    ('bin_12'),
+    ('bin_13'),
+    ('bin_14'),
+    ('bin_15'),
+    ('bin_16'),
+    ('bin_17'),
+    ('bin_18'),
+    ('bin_19'),
     ]
 
 
@@ -100,8 +109,8 @@ import copy
 
 dict_for_table = []
 for ibin, region in enumerate(regions):
-    binName, nJet, nHiggs, MET = region
-    row = {'MET':MET, 'nJet':nJet, 'nHiggs':nHiggs, 'wjets':0, 'top':0, 'other':0, 'total_background':0, 'sig':0, 'sig2':0, 'sig3':0, 'data':0}
+    binName = region
+    row = {'fakes_mc':0, 'rares':0, 'flips_mc':0, 'total_background':0, 'signal':0, 'data':0}
     dict_for_table.append(copy.deepcopy(row))
     res.append(copy.deepcopy(row))
 
@@ -110,7 +119,7 @@ total_pred = 0
 for p,tex in processes:
     hists[p].legendText = tex
     for ibin, region in enumerate(regions):
-        binName, nJet, nHiggs, MET = region
+        binName = region
         shapesKey = 'shapes_prefit' if p.count('sig') else shapes
         if p == 'data':
             pred = int(round(postFitResults['hists'][shapesKey][binName][p].Eval(1),0))
@@ -143,17 +152,16 @@ for p,tex in processes:
 #test = ROOT.TColor(2021, 0.6, 0.6, 1.0)  # old
 test = ROOT.TColor(2021, 0.647, 0.53, 1.0)
 #colors = {'top':ROOT.kAzure+1, 'wjets':ROOT.kGreen+1, 'other':ROOT.kOrange+7} # single-t would be kOrange
-colors = {'top':ROOT.kAzure+1, 'wjets':ROOT.kGreen+1, 'other':2021} # single-t would be kOrange
+colors = {'fakes_mc':ROOT.kAzure+1, 'flips_mc':ROOT.kGreen+1, 'rares':2021} # single-t would be kOrange
 
-hists['top'].style = styles.fillStyle(ROOT.kAzure+1)
-hists['wjets'].style = styles.fillStyle(ROOT.kGreen+1)
+hists['fakes_mc'].style = styles.fillStyle(ROOT.kAzure+1)
+hists['flips_mc'].style = styles.fillStyle(ROOT.kGreen+1)
 #hists['other'].style = styles.fillStyle(ROOT.kOrange+7)
-hists['other'].style = styles.fillStyle(2021)
-hists['sig'].style = styles.lineStyle(ROOT.kRed, width=3)
-hists['sig2'].style = styles.lineStyle(ROOT.kRed, width=3, dashed=True)
-hists['sig3'].style = styles.lineStyle(ROOT.kRed, width=3, dotted=True)
+hists['rares'].style = styles.fillStyle(2021)
+hists['signal'].style = styles.lineStyle(ROOT.kRed, width=3)
 hists['data'].SetBinErrorOption(ROOT.TH1F.kPoisson)
-hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
+#hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
+hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
 
 total_pred = hists['total_background'].Integral()
 
@@ -163,7 +171,7 @@ boxes = []
 ratio_boxes = []
 
 for ib, region in enumerate(regions):
-    binName, nJet, nHiggs, MET = region
+    binName = region
     val = hists['total_background'].GetBinContent(ib+1)
     sys = hists['total_background'].GetBinError(ib+1)
     sys_rel = sys/val
@@ -185,7 +193,7 @@ for ib, region in enumerate(regions):
     ratio_boxes.append(r_box)
 
 
-binLabels = ['','200','300','400','','300','','200','300','400','','300','']
+binLabels = ['bin_'+str(x) for x in range(20)]
 def setBinLabels( hist ):
     for i in range(1, hist.GetNbinsX()+1):
         hist.GetXaxis().SetBinLabel(i, '%s       '%binLabels[i-1])
@@ -266,18 +274,18 @@ def getSignalLegend():
     dummy.SetMarkerSize(0)
     leg.AddEntry(dummy, '#bf{#tilde{#chi}^{0}_{2} #rightarrow H #tilde{#chi}^{0}_{1},  #tilde{#chi}^{#pm}_{1} #rightarrow W^{#pm} #tilde{#chi}^{0}_{1}}')
     # add the entries
-    hists['sig'].SetLineColor(ROOT.kRed)
-    hists['sig'].SetLineWidth(3)
-    hists['sig'].SetLineStyle(1)
-    leg.AddEntry(hists['sig'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 800 GeV, m_{#tilde{#chi}^{0}_{1}} = 100 GeV}', 'l')
-    hists['sig2'].SetLineColor(ROOT.kRed)
-    hists['sig2'].SetLineWidth(3)
-    hists['sig2'].SetLineStyle(3)
-    leg.AddEntry(hists['sig2'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 425 GeV, m_{#tilde{#chi}^{0}_{1}} = 150 GeV}', 'l')
-    hists['sig3'].SetLineColor(ROOT.kRed)
-    hists['sig3'].SetLineWidth(3)
-    hists['sig3'].SetLineStyle(2)
-    leg.AddEntry(hists['sig3'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 225 GeV, m_{#tilde{#chi}^{0}_{1}} = 75 GeV}', 'l')
+    hists['signal'].SetLineColor(ROOT.kRed)
+    hists['signal'].SetLineWidth(3)
+    hists['signal'].SetLineStyle(1)
+    leg.AddEntry(hists['signal'], 'tqH', 'l')
+    #hists['sig2'].SetLineColor(ROOT.kRed)
+    #hists['sig2'].SetLineWidth(3)
+    #hists['sig2'].SetLineStyle(3)
+    #leg.AddEntry(hists['sig2'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 425 GeV, m_{#tilde{#chi}^{0}_{1}} = 150 GeV}', 'l')
+    #hists['sig3'].SetLineColor(ROOT.kRed)
+    #hists['sig3'].SetLineWidth(3)
+    #hists['sig3'].SetLineStyle(2)
+    #leg.AddEntry(hists['sig3'], '#bf{m_{#tilde{#chi}^{0}_{2}/#tilde{#chi}^{#pm}_{1}} = 225 GeV, m_{#tilde{#chi}^{0}_{1}} = 75 GeV}', 'l')
     return [leg]
 
 def drawObjects( isData=False, lumi=137 ):
@@ -291,9 +299,10 @@ def drawObjects( isData=False, lumi=137 ):
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
-drawObjects = drawObjects(isData) + boxes + drawDivisions(regions) + drawTexLabels(regions) + getLegend() + getSignalLegend()
+#drawObjects = drawObjects(isData) + boxes + drawDivisions(regions) + drawTexLabels(regions) + getLegend() + getSignalLegend()
+drawObjects = drawObjects(isData) + boxes + drawTexLabels(regions) + getLegend() + getSignalLegend()
 
-plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']], [hists['sig2']], [hists['sig3']] ]
+plots = [ [hists['fakes_mc'], hists['rares'], hists['flips_mc']], [hists['data']], [hists['signal']] ]
 #plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']] ]
 
 for log, l in [(False,'lin'),(True,'log')]:
@@ -310,11 +319,11 @@ for log, l in [(False,'lin'),(True,'log')]:
                     texX = "p_{T}^{miss} [GeV]",
                     texY = 'Events',
                 ),
-        plot_directory = os.path.join('/home/users/dspitzba/public_html/WH_studies/', "signalRegions_unblind_ref"),
+        plot_directory = os.path.join('/home/users/ksalyer/public_html/', "signalRegions_unblind_ref"),
         logX = False, logY = log, sorting = False, 
         legend = None,
         widths = {'x_width':800, 'y_width':600, 'y_ratio_width':250},
-        yRange = (ymin,3000) if log else (0.01,32),
+        yRange = (0.1,30000) if log else (0.01,3000),
         drawObjects = drawObjects,
         #histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2)],
         histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28)],
@@ -323,7 +332,8 @@ for log, l in [(False,'lin'),(True,'log')]:
             'texY':'#frac{Obs.}{Pred.}', 
             'histos':[(1,0)], 
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.025), lambda h: h.GetXaxis().SetTitleOffset(4.2)], 
-            'drawObjects':drawDivisionsRatio(regions)+ratio_boxes
+            #'drawObjects':drawDivisionsRatio(regions)+ratio_boxes
+            'drawObjects':ratio_boxes
         },
         copyIndexPHP = True,
     )
@@ -334,22 +344,22 @@ df = pd.DataFrame(dict_for_table)
 
 #print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
 
-print
-print "######################################################"
-print "######## PAPER VERSION OF THE TABLE ##################"
-print "######################################################"
-print
+#print
+#print "######################################################"
+#print "######## PAPER VERSION OF THE TABLE ##################"
+#print "######################################################"
+#print
 
-print df.to_latex(columns=['nJet','nHiggs', 'MET','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
+#print df.to_latex(columns=['nJet','nHiggs', 'MET','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
 
-print
-print
-print
-print
-print "######################################################"
-print "######### NOTE VERSION OF THE TABLE ##################"
-print "######################################################"
-print
+#print
+#print
+#print
+#print
+#print "######################################################"
+#print "######### NOTE VERSION OF THE TABLE ##################"
+#print "######################################################"
+#print
 
-print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
+#print df.to_latex(columns=['nJet','nHiggs', 'MET','top','wjets','other','total_background', 'data', 'sig', 'sig2', 'sig3'], index=False, escape=False)
 

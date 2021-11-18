@@ -272,7 +272,7 @@ def getSignalLegend():
     #boxes[0].SetFillColor(0)
     dummy.SetLineWidth(0)
     dummy.SetMarkerSize(0)
-    leg.AddEntry(dummy, '#bf{#tilde{#chi}^{0}_{2} #rightarrow H #tilde{#chi}^{0}_{1},  #tilde{#chi}^{#pm}_{1} #rightarrow W^{#pm} #tilde{#chi}^{0}_{1}}')
+    #leg.AddEntry(dummy, '#bf{#tilde{#chi}^{0}_{2} #rightarrow H #tilde{#chi}^{0}_{1},  #tilde{#chi}^{#pm}_{1} #rightarrow W^{#pm} #tilde{#chi}^{0}_{1}}')
     # add the entries
     hists['signal'].SetLineColor(ROOT.kRed)
     hists['signal'].SetLineWidth(3)
@@ -300,7 +300,7 @@ def drawObjects( isData=False, lumi=137 ):
     return [tex.DrawLatex(*l) for l in lines]
 
 #drawObjects = drawObjects(isData) + boxes + drawDivisions(regions) + drawTexLabels(regions) + getLegend() + getSignalLegend()
-drawObjects = drawObjects(isData) + boxes + drawTexLabels(regions) + getLegend() + getSignalLegend()
+drawObjects = drawObjects(isData) + boxes + getLegend() + getSignalLegend()
 
 plots = [ [hists['fakes_mc'], hists['rares'], hists['flips_mc']], [hists['data']], [hists['signal']] ]
 #plots = [ [hists['top'], hists['wjets'], hists['other']], [hists['data']], [hists['sig']] ]
@@ -316,14 +316,14 @@ for log, l in [(False,'lin'),(True,'log')]:
     plotting.draw(
         Plot.fromHisto('signalRegions'+postFix,
                     plots,
-                    texX = "p_{T}^{miss} [GeV]",
+                    texX = "Signal Region",
                     texY = 'Events',
                 ),
         plot_directory = os.path.join('/home/users/ksalyer/public_html/', "signalRegions_unblind_ref"),
         logX = False, logY = log, sorting = False, 
         legend = None,
         widths = {'x_width':800, 'y_width':600, 'y_ratio_width':250},
-        yRange = (0.1,30000) if log else (0.01,3000),
+        yRange = (0.1,300000) if log else (0.01,3000),
         drawObjects = drawObjects,
         #histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2)],
         histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28)],

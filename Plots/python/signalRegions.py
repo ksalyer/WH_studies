@@ -74,29 +74,33 @@ processes = [('rares', 'SM SS'),
             ]
 
 ## need to sort the regions somehow
-#regions = postFitResults['hists']['shapes_prefit'].keys()
-regions = [\
-    ('bin_0'),
-    ('bin_1'),
-    ('bin_2'),
-    ('bin_3'),
-    ('bin_4'),
-    ('bin_5'),
-    ('bin_6'),
-    ('bin_7'),
-    ('bin_8'),
-    ('bin_9'),
-    ('bin_10'),
-    ('bin_11'),
-    ('bin_12'),
-    ('bin_13'),
-    ('bin_14'),
-    ('bin_15'),
-    ('bin_16'),
-    ('bin_17'),
-    ('bin_18'),
-    ('bin_19'),
-    ]
+# regions = postFitResults['hists']['shapes_prefit'].keys()
+regions = ["dc_16_bin_"+str(i) for i in range(20)]
+regions += ["dc_17_bin_"+str(i) for i in range(20)]
+regions += ["dc_18_bin_"+str(i) for i in range(20)]
+print(regions)
+# regions = [\
+#     ('bin_0'),
+#     ('bin_1'),
+#     ('bin_2'),
+#     ('bin_3'),
+#     ('bin_4'),
+#     ('bin_5'),
+#     ('bin_6'),
+#     ('bin_7'),
+#     ('bin_8'),
+#     ('bin_9'),
+#     ('bin_10'),
+#     ('bin_11'),
+#     ('bin_12'),
+#     ('bin_13'),
+#     ('bin_14'),
+#     ('bin_15'),
+#     ('bin_16'),
+#     ('bin_17'),
+#     ('bin_18'),
+#     ('bin_19'),
+#     ]
 
 
 hists = { p:ROOT.TH1F(p,tex,len(regions),0,len(regions)) for p,tex in processes }
@@ -193,7 +197,8 @@ for ib, region in enumerate(regions):
     ratio_boxes.append(r_box)
 
 
-binLabels = ['bin_'+str(x) for x in range(20)]
+# binLabels = ['bin_'+str(x) for x in range(20)]
+binLabels = regions
 def setBinLabels( hist ):
     for i in range(1, hist.GetNbinsX()+1):
         hist.GetXaxis().SetBinLabel(i, '%s       '%binLabels[i-1])
@@ -319,7 +324,7 @@ for log, l in [(False,'lin'),(True,'log')]:
                     texX = "Signal Region",
                     texY = 'Events',
                 ),
-        plot_directory = os.path.join('/home/users/ksalyer/public_html/', "signalRegions_unblind_ref"),
+        plot_directory = os.path.join('/home/users/ksalyer/public_html/unblind_aug11/', "signalRegions_unblind_ref"),
         logX = False, logY = log, sorting = False, 
         legend = None,
         widths = {'x_width':800, 'y_width':600, 'y_ratio_width':250},
@@ -332,7 +337,7 @@ for log, l in [(False,'lin'),(True,'log')]:
             'texY':'#frac{Obs.}{Pred.}', 
             'histos':[(1,0)], 
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.025), lambda h: h.GetXaxis().SetTitleOffset(4.2)], 
-            #'drawObjects':drawDivisionsRatio(regions)+ratio_boxes
+            # 'drawObjects':drawDivisionsRatio(regions)+ratio_boxes
             'drawObjects':ratio_boxes
         },
         copyIndexPHP = True,
